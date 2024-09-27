@@ -2,7 +2,7 @@ use core::panic;
 use std::{num::NonZeroU32, rc::Rc};
 
 use glutin::{
-    config::{ConfigTemplateBuilder, GetGlConfig, GlConfig},
+    config::{Config, ConfigTemplateBuilder, GetGlConfig, GlConfig},
     context::PossiblyCurrentContext,
     display::GetGlDisplay,
     prelude::{GlDisplay, NotCurrentGlContext, PossiblyCurrentGlContext},
@@ -25,7 +25,17 @@ struct App {
     gl_context: Option<PossiblyCurrentContext>,
     renderer: Option<Renderer>,
 }
-
+fn config_picker(configs: Box<dyn Iterator<Item = Config> + '_>) -> Config {
+    configs
+        .reduce(|accum, config| {
+            if config.num_samples() > accum.num_samples() {
+                config
+            } else {
+                accum
+            }
+        })
+        .unwrap()
+}
 impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
         let (window, gl_config) = match &self.gl_display {
@@ -33,17 +43,7 @@ impl ApplicationHandler for App {
                 let (window, gl_config) = match display_builder.clone().build(
                     event_loop,
                     self.template.clone(),
-                    |configs| {
-                        configs
-                            .reduce(|accum, config| {
-                                if config.num_samples() > accum.num_samples() {
-                                    config
-                                } else {
-                                    accum
-                                }
-                            })
-                            .unwrap()
-                    },
+                    config_picker,
                 ) {
                     Ok((window, gl_config)) => (window.unwrap(), gl_config),
                     Err(err) => {
