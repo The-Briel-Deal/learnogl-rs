@@ -1,6 +1,5 @@
 use core::panic;
 use std::{
-    borrow::Borrow,
     cell::RefCell,
     ffi::{CStr, CString},
     num::NonZeroU32,
@@ -25,7 +24,7 @@ use winit::{
     event::WindowEvent,
     event_loop::{ControlFlow, EventLoop},
     raw_window_handle::HasWindowHandle,
-    window::{self, Window},
+    window::Window,
 };
 
 pub mod gl {
@@ -260,7 +259,7 @@ impl ApplicationHandler for App {
     fn window_event(
         &mut self,
         event_loop: &winit::event_loop::ActiveEventLoop,
-        window_id: winit::window::WindowId,
+        _window_id: winit::window::WindowId,
         event: winit::event::WindowEvent,
     ) {
         dbg!(&event);
