@@ -4,7 +4,8 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
-use winit_test::state::App;
+
+use learn_ogl_rs::state::App;
 
 fn main() {
     let event_loop = EventLoop::new().unwrap();
