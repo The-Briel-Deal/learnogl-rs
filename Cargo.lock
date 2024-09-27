@@ -1810,6 +1810,7 @@ dependencies = [
 name = "winit_test"
 version = "0.1.0"
 dependencies = [
+ "gl_generator",
  "glutin",
  "glutin-winit",
  "softbuffer",
