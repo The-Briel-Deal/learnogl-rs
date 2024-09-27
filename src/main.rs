@@ -1,10 +1,5 @@
 use core::panic;
-use std::{
-    cell::RefCell,
-    num::NonZeroU32,
-    ops::Deref,
-    rc::Rc,
-};
+use std::{cell::RefCell, num::NonZeroU32, ops::Deref, rc::Rc};
 
 use glutin::{
     config::{Config, ConfigTemplateBuilder, GetGlConfig, GlConfig},
