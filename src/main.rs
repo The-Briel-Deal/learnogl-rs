@@ -20,11 +20,9 @@ use winit::{
 };
 use winit_test::renderer::Renderer;
 
-type RcSurf = Surface<WindowSurface>;
-
 struct App {
     window: Option<Rc<Window>>,
-    surface: Option<RcSurf>,
+    surface: Option<Surface<WindowSurface>>,
     template: ConfigTemplateBuilder,
     gl_display: GlDisplayCreationState,
     gl_context: Option<PossiblyCurrentContext>,
