@@ -1,21 +1,10 @@
-use core::panic;
-use std::{num::NonZeroU32, rc::Rc};
-
-use glutin::{
-    config::{Config, ConfigTemplateBuilder, GetGlConfig, GlConfig},
-    context::PossiblyCurrentContext,
-    display::GetGlDisplay,
-    prelude::{GlDisplay, NotCurrentGlContext, PossiblyCurrentGlContext},
-    surface::{GlSurface, Surface, SwapInterval, WindowSurface},
-};
-use glutin_winit::{DisplayBuilder, GlWindow};
+use glutin::config::ConfigTemplateBuilder;
+use glutin_winit::DisplayBuilder;
 use winit::{
-    application::ApplicationHandler,
-    event::WindowEvent,
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
-use winit_test::{gl::create_gl_context, renderer::Renderer, state::App};
+use winit_test::state::App;
 
 fn main() {
     let event_loop = EventLoop::new().unwrap();

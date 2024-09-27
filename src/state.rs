@@ -9,12 +9,7 @@ use glutin::{
     surface::{GlSurface, Surface, SwapInterval, WindowSurface},
 };
 use glutin_winit::{DisplayBuilder, GlWindow};
-use winit::{
-    application::ApplicationHandler,
-    event::WindowEvent,
-    event_loop::{ControlFlow, EventLoop},
-    window::Window,
-};
+use winit::{application::ApplicationHandler, event::WindowEvent, window::Window};
 
 use crate::{gl::create_gl_context, renderer::Renderer};
 pub struct App {
