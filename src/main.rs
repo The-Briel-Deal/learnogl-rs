@@ -2,10 +2,8 @@ use core::panic;
 use std::{num::NonZeroU32, rc::Rc};
 
 use glutin::{
-    config::{Config, ConfigTemplateBuilder, GetGlConfig, GlConfig},
-    context::{
-        ContextApi, ContextAttributesBuilder, NotCurrentContext, PossiblyCurrentContext, Version,
-    },
+    config::{ConfigTemplateBuilder, GetGlConfig, GlConfig},
+    context::PossiblyCurrentContext,
     display::GetGlDisplay,
     prelude::{GlDisplay, NotCurrentGlContext, PossiblyCurrentGlContext},
     surface::{GlSurface, Surface, SwapInterval, WindowSurface},
@@ -15,7 +13,6 @@ use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
     event_loop::{ControlFlow, EventLoop},
-    raw_window_handle::HasWindowHandle,
     window::Window,
 };
 use winit_test::{gl::create_gl_context, renderer::Renderer};
