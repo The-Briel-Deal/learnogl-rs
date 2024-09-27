@@ -1,10 +1,8 @@
 use core::panic;
 use std::{
     cell::RefCell,
-    ffi::{CStr, CString},
     num::NonZeroU32,
     ops::Deref,
-    os::raw::c_void,
     rc::Rc,
 };
 
@@ -25,7 +23,6 @@ use winit::{
     raw_window_handle::HasWindowHandle,
     window::Window,
 };
-use winit_test::gl::types::{GLfloat, GLuint};
 use winit_test::renderer::Renderer;
 
 type RcSurf = Rc<RefCell<Surface<WindowSurface>>>;
