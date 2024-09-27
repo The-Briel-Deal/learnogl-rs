@@ -9,5 +9,6 @@ fn main() {
 
     let mut file = File::create(dest.join("gl_bindings.rs")).unwrap();
     Registry::new(Api::Gles2, (3, 0), Profile::Core, Fallbacks::All, [])
-        .write_bindings(StructGenerator, &mut file).unwrap();
+        .write_bindings(StructGenerator, &mut file)
+        .unwrap();
 }
