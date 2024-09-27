@@ -20,7 +20,7 @@ use winit::{
 };
 use winit_test::renderer::Renderer;
 
-type RcSurf = Rc<RefCell<Surface<WindowSurface>>>;
+type RcSurf = Surface<WindowSurface>;
 
 struct App {
     window: Option<Rc<Window>>,
@@ -100,7 +100,7 @@ impl ApplicationHandler for App {
         {
             eprintln!("Error setting vsync: {res:?}");
         }
-        self.surface = Some(Rc::new(RefCell::new(gl_surface)));
+        self.surface = Some(gl_surface);
         self.window = Some(Rc::new(window));
     }
 
@@ -119,8 +119,6 @@ impl ApplicationHandler for App {
             WindowEvent::RedrawRequested => {
                 let window = self.window.as_ref().unwrap();
                 let gl_surface = self.surface.as_ref().unwrap();
-                let gl_surface = gl_surface.deref().borrow();
-
                 let gl_context = self.gl_context.as_ref().unwrap();
                 let renderer = self.renderer.as_ref().unwrap();
                 renderer.draw();
@@ -129,10 +127,9 @@ impl ApplicationHandler for App {
                 gl_surface.swap_buffers(gl_context).unwrap();
             }
             WindowEvent::Resized(size) => {
-                if let Some(gl_surface) = self.surface.clone() {
+                if let Some(gl_surface) = &self.surface {
                     let gl_context = self.gl_context.as_ref().unwrap();
 
-                    let gl_surface = gl_surface.deref().borrow();
                     gl_surface.resize(
                         gl_context,
                         NonZeroU32::new(size.width).unwrap(),
