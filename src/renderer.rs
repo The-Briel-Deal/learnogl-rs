@@ -37,24 +37,38 @@ impl Renderer {
 
             let fragment_shader = create_shader(&gl, gl::FRAGMENT_SHADER, FRAGMENT_SHADER_SOURCE);
 
-            let program = gl.CreateProgram();
+            let mut renderer = Self {
+                program: gl.CreateProgram(),
+                vao: std::mem::zeroed(),
+                vbo: std::mem::zeroed(),
+                gl: gl::Gl::load_with(|symbol| {
+                    let symbol = CString::new(symbol).unwrap();
+                    gl_display.get_proc_address(symbol.as_c_str()).cast()
+                }),
+            };
 
-            gl.AttachShader(program, vertex_shader);
-            gl.AttachShader(program, fragment_shader);
+            gl.AttachShader(renderer.program, vertex_shader);
+            gl.AttachShader(renderer.program, fragment_shader);
 
-            gl.LinkProgram(program);
+            gl.LinkProgram(renderer.program);
 
-            gl.UseProgram(program);
+            gl.UseProgram(renderer.program);
 
             gl.DeleteShader(vertex_shader);
             gl.DeleteShader(fragment_shader);
 
-            let mut vao = std::mem::zeroed();
-            gl.GenVertexArrays(1, &mut vao);
-            gl.BindVertexArray(vao);
+            gl.GenVertexArrays(1, &mut renderer.vao);
+            gl.BindVertexArray(renderer.vao);
 
-            let mut vbo = std::mem::zeroed();
-            gl.GenBuffers(1, &mut vbo);
+            gl.GenBuffers(1, &mut renderer.vbo);
+
+            Self::point_attributes_to_buffer(&gl, renderer.vbo, renderer.program);
+
+            renderer
+        }
+    }
+    fn point_attributes_to_buffer(gl: &gl::Gl, vbo: u32, program: u32) {
+        unsafe {
             gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
             gl.BufferData(
                 gl::ARRAY_BUFFER,
@@ -67,7 +81,6 @@ impl Renderer {
                 gl.GetAttribLocation(program, b"position\0".as_ptr() as *const gl::types::GLchar);
             let color_attrib =
                 gl.GetAttribLocation(program, b"color\0".as_ptr() as *const gl::types::GLchar);
-            dbg!(pos_attrib, color_attrib);
 
             gl.VertexAttribPointer(
                 pos_attrib as gl::types::GLuint,
@@ -85,15 +98,11 @@ impl Renderer {
                 5 * std::mem::size_of::<f32>() as gl::types::GLsizei,
                 (2 * std::mem::size_of::<f32>()) as *const c_void,
             );
+
+            gl.BindBuffer(gl::ARRAY_BUFFER, 0);
+
             gl.EnableVertexAttribArray(pos_attrib as GLuint);
             gl.EnableVertexAttribArray(color_attrib as GLuint);
-
-            Self {
-                program,
-                vao,
-                vbo,
-                gl,
-            }
         }
     }
     pub fn draw(&self) {
@@ -111,7 +120,6 @@ impl Renderer {
             self.gl.UseProgram(self.program);
 
             self.gl.BindVertexArray(self.vao);
-            self.gl.BindBuffer(gl::ARRAY_BUFFER, self.vbo);
 
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
