@@ -2,11 +2,11 @@ use std::{ffi::CString, os::raw::c_void};
 
 use glutin::prelude::GlDisplay;
 
-use crate::gl::{
+use crate::{gl::{
     self, create_shader, get_gl_string,
     types::{GLfloat, GLuint},
     Gl,
-};
+}, helper::add_null_term};
 
 pub struct Renderer {
     program: GLuint,
@@ -33,9 +33,14 @@ impl Renderer {
             println!("Shaders version on {}", shaders_version.to_string_lossy());
         }
         unsafe {
-            let vertex_shader = create_shader(&gl, gl::VERTEX_SHADER, VERTEX_SHADER_SOURCE);
+            let vertex_shader =
+                create_shader(&gl, gl::VERTEX_SHADER, &add_null_term(VERTEX_SHADER_SOURCE));
 
-            let fragment_shader = create_shader(&gl, gl::FRAGMENT_SHADER, FRAGMENT_SHADER_SOURCE);
+            let fragment_shader = create_shader(
+                &gl,
+                gl::FRAGMENT_SHADER,
+                &add_null_term(FRAGMENT_SHADER_SOURCE),
+            );
 
             let mut renderer = Self {
                 program: gl.CreateProgram(),
@@ -138,28 +143,6 @@ static VERTEX_DATA: [f32; 15] = [
      0.5, -0.5,  0.0,  0.0,  1.0,
 ];
 
-const VERTEX_SHADER_SOURCE: &[u8] = b"
-#version 100
-precision mediump float;
+const VERTEX_SHADER_SOURCE: &[u8] = include_bytes!("shaders/vert.glsl");
+const FRAGMENT_SHADER_SOURCE: &[u8] = include_bytes!("shaders/frag.glsl");
 
-attribute vec2 position;
-attribute vec3 color;
-
-varying vec3 v_color;
-
-void main() {
-    gl_Position = vec4(position, 0.0, 1.0);
-    v_color = color;
-}
-\0";
-
-const FRAGMENT_SHADER_SOURCE: &[u8] = b"
-#version 100
-precision mediump float;
-
-varying vec3 v_color;
-
-void main() {
-    gl_FragColor = vec4(v_color, 1.0);
-}
-\0";
