@@ -1,4 +1,4 @@
-use std::{ffi::CString, os::raw::c_void};
+use std::{ffi::CString, mem::zeroed, os::raw::c_void};
 
 use glutin::prelude::GlDisplay;
 

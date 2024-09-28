@@ -1,4 +1,4 @@
-#version 100
+#version 330 core
 precision mediump float;
 
 attribute vec2 position;

@@ -1,4 +1,4 @@
-#version 100
+#version 330 core
 precision mediump float;
 
 varying vec3 v_color;
