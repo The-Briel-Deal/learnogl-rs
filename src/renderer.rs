@@ -17,7 +17,9 @@ const FRAGMENT_SHADER_SOURCE: &[u8] = include_bytes!("shaders/frag.glsl");
 pub struct Renderer {
     program: GLuint,
     vao: GLuint,
+    vao2: GLuint,
     vbo: GLuint,
+    vbo2: GLuint,
     gl: Gl,
 }
 
@@ -51,7 +53,9 @@ impl Renderer {
             let mut renderer = Self {
                 program: gl.CreateProgram(),
                 vao: std::mem::zeroed(),
+                vao2: std::mem::zeroed(),
                 vbo: std::mem::zeroed(),
+                vbo2: std::mem::zeroed(),
                 gl: gl::Gl::load_with(|symbol| {
                     let symbol = CString::new(symbol).unwrap();
                     gl_display.get_proc_address(symbol.as_c_str()).cast()
@@ -73,18 +77,25 @@ impl Renderer {
 
             gl.GenBuffers(1, &mut renderer.vbo);
 
-            Self::point_attributes_to_buffer(&gl, renderer.vbo, renderer.program);
+            Self::point_attributes_to_buffer(&gl, renderer.vbo, renderer.program, &VERTEX_DATA);
+
+            gl.GenVertexArrays(1, &mut renderer.vao2);
+            gl.BindVertexArray(renderer.vao2);
+
+            gl.GenBuffers(1, &mut renderer.vbo2);
+
+            Self::point_attributes_to_buffer(&gl, renderer.vbo2, renderer.program, &SECOND_VERTEX);
 
             renderer
         }
     }
-    fn point_attributes_to_buffer(gl: &gl::Gl, vbo: u32, program: u32) {
+    fn point_attributes_to_buffer(gl: &gl::Gl, vbo: u32, program: u32, verticies: &[f32]) {
         unsafe {
             gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
             gl.BufferData(
                 gl::ARRAY_BUFFER,
-                (VERTEX_DATA.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr,
-                VERTEX_DATA.as_ptr() as *const _,
+                (std::mem::size_of_val(verticies)) as gl::types::GLsizeiptr,
+                verticies.as_ptr() as *const _,
                 gl::STATIC_DRAW,
             );
 
@@ -130,11 +141,15 @@ impl Renderer {
         unsafe {
             self.gl.UseProgram(self.program);
 
-            self.gl.BindVertexArray(self.vao);
 
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
-            self.gl.DrawArrays(gl::TRIANGLES, 0, 6);
+
+            self.gl.BindVertexArray(self.vao);
+            self.gl.DrawArrays(gl::TRIANGLES, 0, 3);
+
+            self.gl.BindVertexArray(self.vao2);
+            self.gl.DrawArrays(gl::TRIANGLES, 0, 3);
         }
     }
     pub fn resize(&self, width: i32, height: i32) {
@@ -143,11 +158,14 @@ impl Renderer {
 }
 
 #[rustfmt::skip]
-static VERTEX_DATA: [f32; 30] = [
+static VERTEX_DATA: [f32; 15] = [
     -0.25, -0.25,  1.0,  0.0,  0.0, // Bottom Left
      0.25,  0.75,  0.0,  1.0,  0.0, // Top Center
      0.75, -0.25,  0.0,  0.0,  1.0, // Bottom Right
-    -0.75, -0.75,  1.0,  0.0,  0.0,
-     -0.25,  0.25,  0.0,  1.0,  0.0,
-     0.25, -0.75,  0.0,  0.0,  1.0,
+];
+#[rustfmt::skip]
+static SECOND_VERTEX: [f32; 15] = [
+    -0.75, -0.75,  1.0,  0.0,  0.0,  // Bottom Left
+     -0.25,  0.25,  0.0,  1.0,  0.0, // Top Center
+     0.25, -0.75,  0.0,  0.0,  1.0,  // Bottom Right
 ];
