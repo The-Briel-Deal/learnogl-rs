@@ -1,8 +1,10 @@
 #version 330 core
 precision mediump float;
 
-varying vec3 v_color;
+out vec4 vertexColorOut;
+
+in vec3 vertexColorIn;
 
 void main() {
-    gl_FragColor = vec4(v_color, 1.0);
+    vertexColorOut = vec4(vertexColorIn, 1.0);
 }
