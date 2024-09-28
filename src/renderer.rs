@@ -13,9 +13,11 @@ use crate::{
 
 const VERTEX_SHADER_SOURCE: &[u8] = include_bytes!("shaders/vert.glsl");
 const FRAGMENT_SHADER_SOURCE: &[u8] = include_bytes!("shaders/frag.glsl");
+const SECOND_FRAGMENT_SHADER_SOURCE: &[u8] = include_bytes!("shaders/second_frag.glsl");
 
 pub struct Renderer {
     program: GLuint,
+    program2: GLuint,
     vao: GLuint,
     vao2: GLuint,
     vbo: GLuint,
@@ -50,8 +52,15 @@ impl Renderer {
                 &add_null_term(FRAGMENT_SHADER_SOURCE),
             );
 
+            let second_fragment_shader = create_shader(
+                &gl,
+                gl::FRAGMENT_SHADER,
+                &add_null_term(SECOND_FRAGMENT_SHADER_SOURCE),
+            );
+
             let mut renderer = Self {
                 program: gl.CreateProgram(),
+                program2: gl.CreateProgram(),
                 vao: std::mem::zeroed(),
                 vao2: std::mem::zeroed(),
                 vbo: std::mem::zeroed(),
@@ -64,10 +73,11 @@ impl Renderer {
 
             gl.AttachShader(renderer.program, vertex_shader);
             gl.AttachShader(renderer.program, fragment_shader);
-
             gl.LinkProgram(renderer.program);
 
-            gl.UseProgram(renderer.program);
+            gl.AttachShader(renderer.program2, vertex_shader);
+            gl.AttachShader(renderer.program2, second_fragment_shader);
+            gl.LinkProgram(renderer.program2);
 
             gl.DeleteShader(vertex_shader);
             gl.DeleteShader(fragment_shader);
@@ -141,13 +151,14 @@ impl Renderer {
         unsafe {
             self.gl.UseProgram(self.program);
 
-
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 
+            self.gl.UseProgram(self.program);
             self.gl.BindVertexArray(self.vao);
             self.gl.DrawArrays(gl::TRIANGLES, 0, 3);
 
+            self.gl.UseProgram(self.program2);
             self.gl.BindVertexArray(self.vao2);
             self.gl.DrawArrays(gl::TRIANGLES, 0, 3);
         }
