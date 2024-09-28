@@ -2,11 +2,17 @@ use std::{ffi::CString, os::raw::c_void};
 
 use glutin::prelude::GlDisplay;
 
-use crate::{gl::{
-    self, create_shader, get_gl_string,
-    types::{GLfloat, GLuint},
-    Gl,
-}, helper::add_null_term};
+use crate::{
+    gl::{
+        self, create_shader, get_gl_string,
+        types::{GLfloat, GLuint},
+        Gl,
+    },
+    helper::add_null_term,
+};
+
+const VERTEX_SHADER_SOURCE: &[u8] = include_bytes!("shaders/vert.glsl");
+const FRAGMENT_SHADER_SOURCE: &[u8] = include_bytes!("shaders/frag.glsl");
 
 pub struct Renderer {
     program: GLuint,
@@ -99,7 +105,7 @@ impl Renderer {
                 color_attrib as gl::types::GLuint,
                 3,
                 gl::FLOAT,
-                0,
+                gl::FALSE,
                 5 * std::mem::size_of::<f32>() as gl::types::GLsizei,
                 (2 * std::mem::size_of::<f32>()) as *const c_void,
             );
@@ -128,7 +134,7 @@ impl Renderer {
 
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
-            self.gl.DrawArrays(gl::TRIANGLES, 0, 3);
+            self.gl.DrawArrays(gl::TRIANGLES, 0, 6);
         }
     }
     pub fn resize(&self, width: i32, height: i32) {
@@ -137,12 +143,11 @@ impl Renderer {
 }
 
 #[rustfmt::skip]
-static VERTEX_DATA: [f32; 15] = [
-    -0.5, -0.5,  1.0,  0.0,  0.0,
-     0.0,  0.5,  0.0,  1.0,  0.0,
-     0.5, -0.5,  0.0,  0.0,  1.0,
+static VERTEX_DATA: [f32; 30] = [
+    -0.25, -0.25,  1.0,  0.0,  0.0, // Bottom Left
+     0.25,  0.75,  0.0,  1.0,  0.0, // Top Center
+     0.75, -0.25,  0.0,  0.0,  1.0, // Bottom Right
+    -0.75, -0.75,  1.0,  0.0,  0.0,
+     -0.25,  0.25,  0.0,  1.0,  0.0,
+     0.25, -0.75,  0.0,  0.0,  1.0,
 ];
-
-const VERTEX_SHADER_SOURCE: &[u8] = include_bytes!("shaders/vert.glsl");
-const FRAGMENT_SHADER_SOURCE: &[u8] = include_bytes!("shaders/frag.glsl");
-
