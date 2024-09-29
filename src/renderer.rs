@@ -8,6 +8,7 @@ use crate::{
         types::{GLfloat, GLuint},
         Gl,
     },
+    helper::calculate_center_of_triangle,
     shader::{Shader, ShaderTrait},
 };
 
@@ -49,6 +50,16 @@ impl Renderer {
                 uni_float: RefCell::new(0.0),
                 gl,
             };
+
+            //#[allow(clippy::identity_op)]
+            //renderer.program.set_vecf2(
+            //    "center",
+            //    calculate_center_of_triangle(
+            //        (VERTEX_DATA[0], VERTEX_DATA[1]),
+            //        (VERTEX_DATA[5 + 0], VERTEX_DATA[5 + 1]),
+            //        (VERTEX_DATA[10 + 0], VERTEX_DATA[10 + 1]),
+            //    ),
+            //).unwrap();
 
             renderer
                 .program

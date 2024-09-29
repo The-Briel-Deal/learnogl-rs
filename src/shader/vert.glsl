@@ -2,6 +2,7 @@
 precision mediump float;
 
 uniform float uniColor;
+uniform vec2 center;
 
 attribute vec2 position;
 attribute vec3 color;

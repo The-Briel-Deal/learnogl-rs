@@ -13,6 +13,7 @@ pub trait ShaderTrait {
     fn set_bool(&self, name: &str, val: bool) -> Result<(), String>;
     fn set_int(&self, name: &str, val: i32) -> Result<(), String>;
     fn set_float(&self, name: &str, val: f32) -> Result<(), String>;
+    fn set_vecf2(&self, name: &str, val: (f32, f32)) -> Result<(), String>;
 }
 
 pub struct Shader {
@@ -63,6 +64,19 @@ impl ShaderTrait for Shader {
                 self.enable();
                 unsafe {
                     self.gl.Uniform1f(id, val);
+                }
+                Ok(())
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    fn set_vecf2(&self, name: &str, val: (f32, f32)) -> Result<(), String> {
+        match self.get_uniform_id(name) {
+            Ok(id) => {
+                self.enable();
+                unsafe {
+                    self.gl.Uniform2f(id, val.0, val.1);
                 }
                 Ok(())
             }
