@@ -1,36 +1,33 @@
-use std::{ffi::CString, mem::zeroed, os::raw::c_void};
+use std::{cell::RefCell, ffi::CString, os::raw::c_void, rc::Rc};
 
 use glutin::prelude::GlDisplay;
 
 use crate::{
     gl::{
-        self, create_shader, get_gl_string,
+        self, get_gl_string,
         types::{GLfloat, GLuint},
         Gl,
     },
-    helper::add_null_term,
+    shader::{Shader, ShaderTrait},
 };
 
-const VERTEX_SHADER_SOURCE: &[u8] = include_bytes!("shaders/vert.glsl");
-const FRAGMENT_SHADER_SOURCE: &[u8] = include_bytes!("shaders/frag.glsl");
-const SECOND_FRAGMENT_SHADER_SOURCE: &[u8] = include_bytes!("shaders/second_frag.glsl");
-
 pub struct Renderer {
-    program: GLuint,
-    program2: GLuint,
+    program: Shader,
+    program2: Shader,
     vao: GLuint,
     vao2: GLuint,
     vbo: GLuint,
     vbo2: GLuint,
-    gl: Gl,
+    uni_float: RefCell<f32>,
+    gl: Rc<Gl>,
 }
 
 impl Renderer {
-    pub fn new<D: GlDisplay>(gl_display: &D) -> Self {
-        let gl = gl::Gl::load_with(|symbol| {
+    pub fn new<D: GlDisplay>(gl_display: &D) -> Renderer {
+        let gl = Rc::new(gl::Gl::load_with(|symbol| {
             let symbol = CString::new(symbol).unwrap();
             gl_display.get_proc_address(symbol.as_c_str()).cast()
-        });
+        }));
 
         if let Some(renderer) = get_gl_string(&gl, gl::RENDERER) {
             println!("Running on {}", renderer.to_string_lossy());
@@ -38,63 +35,49 @@ impl Renderer {
         if let Some(version) = get_gl_string(&gl, gl::VERSION) {
             println!("OpenGL Version {}", version.to_string_lossy());
         }
-
         if let Some(shaders_version) = get_gl_string(&gl, gl::SHADING_LANGUAGE_VERSION) {
             println!("Shaders version on {}", shaders_version.to_string_lossy());
         }
         unsafe {
-            let vertex_shader =
-                create_shader(&gl, gl::VERTEX_SHADER, &add_null_term(VERTEX_SHADER_SOURCE));
-
-            let fragment_shader = create_shader(
-                &gl,
-                gl::FRAGMENT_SHADER,
-                &add_null_term(FRAGMENT_SHADER_SOURCE),
-            );
-
-            let second_fragment_shader = create_shader(
-                &gl,
-                gl::FRAGMENT_SHADER,
-                &add_null_term(SECOND_FRAGMENT_SHADER_SOURCE),
-            );
-
             let mut renderer = Self {
-                program: gl.CreateProgram(),
-                program2: gl.CreateProgram(),
+                program: Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl"),
+                program2: Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl"),
                 vao: std::mem::zeroed(),
                 vao2: std::mem::zeroed(),
                 vbo: std::mem::zeroed(),
                 vbo2: std::mem::zeroed(),
-                gl: gl::Gl::load_with(|symbol| {
-                    let symbol = CString::new(symbol).unwrap();
-                    gl_display.get_proc_address(symbol.as_c_str()).cast()
-                }),
+                uni_float: RefCell::new(0.0),
+                gl,
             };
 
-            gl.AttachShader(renderer.program, vertex_shader);
-            gl.AttachShader(renderer.program, fragment_shader);
-            gl.LinkProgram(renderer.program);
+            renderer
+                .program
+                .set_float("uniColor", *renderer.uni_float.borrow())
+                .unwrap();
 
-            gl.AttachShader(renderer.program2, vertex_shader);
-            gl.AttachShader(renderer.program2, second_fragment_shader);
-            gl.LinkProgram(renderer.program2);
+            renderer.gl.GenVertexArrays(1, &mut renderer.vao);
+            renderer.gl.BindVertexArray(renderer.vao);
 
-            gl.DeleteShader(vertex_shader);
-            gl.DeleteShader(fragment_shader);
+            renderer.gl.GenBuffers(1, &mut renderer.vbo);
 
-            gl.GenVertexArrays(1, &mut renderer.vao);
-            gl.BindVertexArray(renderer.vao);
+            Self::point_attributes_to_buffer(
+                &renderer.gl,
+                renderer.vbo,
+                renderer.program.get_id(),
+                &VERTEX_DATA,
+            );
 
-            gl.GenBuffers(1, &mut renderer.vbo);
+            renderer.gl.GenVertexArrays(1, &mut renderer.vao2);
+            renderer.gl.BindVertexArray(renderer.vao2);
 
-            Self::point_attributes_to_buffer(&gl, renderer.vbo, renderer.program, &VERTEX_DATA);
+            renderer.gl.GenBuffers(1, &mut renderer.vbo2);
 
-            gl.GenVertexArrays(1, &mut renderer.vao2);
-            gl.BindVertexArray(renderer.vao2);
-
-            gl.GenBuffers(1, &mut renderer.vbo2);
-
-            Self::point_attributes_to_buffer(&gl, renderer.vbo2, renderer.program, &SECOND_VERTEX);
+            Self::point_attributes_to_buffer(
+                &renderer.gl,
+                renderer.vbo2,
+                renderer.program.get_id(),
+                &SECOND_VERTEX,
+            );
 
             renderer
         }
@@ -149,16 +132,20 @@ impl Renderer {
         alpha: GLfloat,
     ) {
         unsafe {
-            self.gl.UseProgram(self.program);
-
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 
-            self.gl.UseProgram(self.program);
+            *self.uni_float.borrow_mut() += 0.01;
+
+            self.program
+                .set_float("uniColor", *self.uni_float.borrow())
+                .unwrap();
+
+            self.program.enable();
             self.gl.BindVertexArray(self.vao);
             self.gl.DrawArrays(gl::TRIANGLES, 0, 3);
 
-            self.gl.UseProgram(self.program2);
+            self.program2.enable();
             self.gl.BindVertexArray(self.vao2);
             self.gl.DrawArrays(gl::TRIANGLES, 0, 3);
         }
@@ -170,13 +157,13 @@ impl Renderer {
 
 #[rustfmt::skip]
 static VERTEX_DATA: [f32; 15] = [
-    -0.25, -0.25,  1.0,  0.0,  0.0, // Bottom Left
-     0.25,  0.75,  0.0,  1.0,  0.0, // Top Center
-     0.75, -0.25,  0.0,  0.0,  1.0, // Bottom Right
+    -0.25, -0.25,  0.5,  0.0,  0.0, // Bottom Left
+     0.25,  0.75,  0.0,  0.5,  0.0, // Top Center
+     0.75, -0.25,  0.0,  0.0,  0.5, // Bottom Right
 ];
 #[rustfmt::skip]
 static SECOND_VERTEX: [f32; 15] = [
-    -0.75, -0.75,  1.0,  0.0,  0.0,  // Bottom Left
-     -0.25,  0.25,  0.0,  1.0,  0.0, // Top Center
-     0.25, -0.75,  0.0,  0.0,  1.0,  // Bottom Right
+    -0.75, -0.75,  1.0,  0.0,  0.0, // Bottom Left
+    -0.25,  0.25,  0.0,  1.0,  0.0, // Top Center
+     0.25, -0.75,  0.0,  0.0,  1.0, // Bottom Right
 ];
