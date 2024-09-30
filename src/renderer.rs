@@ -1,11 +1,11 @@
 use std::{
     ffi::{c_void, CString},
-    ptr::null,
+    ptr::{null, slice_from_raw_parts},
     rc::Rc,
 };
 
 use glutin::prelude::GlDisplay;
-use image::{GenericImageView, ImageReader};
+use image::ImageReader;
 
 use crate::{
     gl::{
@@ -25,12 +25,41 @@ pub struct Renderer {
     gl: Rc<Gl>,
 }
 
+extern "system" fn handle_log(
+    source: u32,
+    gltype: u32,
+    id: u32,
+    severity: u32,
+    length: i32,
+    message: *const i8,
+    user_param: *mut std::ffi::c_void,
+) {
+    let message = slice_from_raw_parts(message, length as usize);
+    unsafe {
+        let message = &*message;
+        let mut new_message = vec![];
+
+        for num in message {
+            let unum = *num as u8;
+            new_message.push(unum);
+        }
+        let new_message = String::from_utf8(new_message).unwrap();
+        dbg!(new_message);
+    }
+}
+
+// expected fn pointer `extern "system" fn(u32, u32, u32, u32, i32, *const i8, *mut std::ffi::c_void)`
 impl Renderer {
     pub fn new<D: GlDisplay>(gl_display: &D) -> Renderer {
         let gl = Rc::new(gl::Gl::load_with(|symbol| {
             let symbol = CString::new(symbol).unwrap();
             gl_display.get_proc_address(symbol.as_c_str()).cast()
         }));
+
+        unsafe {
+            gl.Enable(gl::DEBUG_OUTPUT);
+            gl.DebugMessageCallback(Some(handle_log), null());
+        };
 
         /* Image Decoding Start */
         let img = ImageReader::open("static/wall.jpg")
