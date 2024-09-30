@@ -26,13 +26,13 @@ pub struct Renderer {
 }
 
 extern "system" fn handle_log(
-    source: u32,
-    gltype: u32,
-    id: u32,
-    severity: u32,
+    _source: u32,
+    _gltype: u32,
+    _id: u32,
+    _severity: u32,
     length: i32,
     message: *const i8,
-    user_param: *mut std::ffi::c_void,
+    _user_param: *mut std::ffi::c_void,
 ) {
     let message = slice_from_raw_parts(message, length as usize);
     unsafe {
@@ -77,7 +77,6 @@ impl Renderer {
             gl.BindTexture(gl::TEXTURE_2D, texture);
             gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
             gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
-            gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
             gl.TexImage2D(
                 gl::TEXTURE_2D,
                 0,
