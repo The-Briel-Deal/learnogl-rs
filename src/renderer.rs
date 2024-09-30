@@ -22,6 +22,7 @@ pub struct Renderer {
     vbo: GLuint,
     ebo: GLuint,
     texture: GLuint,
+    texture2: GLuint,
     gl: Rc<Gl>,
 }
 
@@ -61,38 +62,6 @@ impl Renderer {
             gl.DebugMessageCallback(Some(handle_log), null());
         };
 
-        /* Image Decoding Start */
-        let img = ImageReader::open("static/wall.jpg")
-            .unwrap()
-            .decode()
-            .unwrap();
-
-        let img_height = img.height();
-        let img_width = img.width();
-        let data = img.as_rgb8().unwrap();
-
-        let mut texture: GLuint = 0;
-        unsafe {
-            gl.GenTextures(1, &mut texture);
-            gl.BindTexture(gl::TEXTURE_2D, texture);
-            gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
-            gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
-            gl.TexImage2D(
-                gl::TEXTURE_2D,
-                0,
-                gl::RGB as i32,
-                img_width as i32,
-                img_height as i32,
-                0,
-                gl::RGB,
-                gl::UNSIGNED_BYTE,
-                data.as_ptr() as *const c_void,
-            );
-            gl.GenerateMipmap(gl::TEXTURE_2D);
-        };
-
-        /* Image Decoding End */
-
         if let Some(renderer) = get_gl_string(&gl, gl::RENDERER) {
             println!("Running on {}", renderer.to_string_lossy());
         }
@@ -108,9 +77,17 @@ impl Renderer {
                 vao: std::mem::zeroed(),
                 vbo: std::mem::zeroed(),
                 ebo: std::mem::zeroed(),
-                texture,
+                texture: std::mem::zeroed(),
+                texture2: std::mem::zeroed(),
                 gl,
             };
+            renderer.gl.ActiveTexture(gl::TEXTURE0);
+            renderer.texture = renderer.create_texture("static/wall.jpg");
+            renderer.program.set_int("texture1", 0).unwrap();
+
+            renderer.gl.ActiveTexture(gl::TEXTURE1);
+            renderer.texture2 = renderer.create_texture("static/awesomeface.png");
+            renderer.program.set_int("texture2", 1).unwrap();
 
             renderer.gl.GenVertexArrays(1, &mut renderer.vao);
             renderer.gl.BindVertexArray(renderer.vao);
@@ -146,6 +123,39 @@ impl Renderer {
 
             renderer
         }
+    }
+    fn create_texture(&self, path: &str) -> GLuint {
+        let gl = &self.gl;
+        let img = ImageReader::open(path)
+            .unwrap()
+            .decode()
+            .unwrap();
+
+        let img_height = img.height();
+        let img_width = img.width();
+        let data = img.to_rgb8();
+
+        let mut texture: GLuint = 0;
+        unsafe {
+            gl.GenTextures(1, &mut texture);
+            gl.BindTexture(gl::TEXTURE_2D, texture);
+            gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
+            gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
+            gl.TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGBA as i32,
+                img_width as i32,
+                img_height as i32,
+                0,
+                gl::RGB,
+                gl::UNSIGNED_BYTE,
+                data.as_ptr() as *const c_void,
+            );
+            gl.GenerateMipmap(gl::TEXTURE_2D);
+        };
+
+        texture
     }
     fn point_attributes_to_buffer(gl: &gl::Gl, vbo: u32, program: u32, verticies: &[f32]) {
         unsafe {
@@ -215,7 +225,10 @@ impl Renderer {
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 
             self.program.enable();
+            self.gl.ActiveTexture(gl::TEXTURE0);
             self.gl.BindTexture(gl::TEXTURE_2D, self.texture);
+            self.gl.ActiveTexture(gl::TEXTURE1);
+            self.gl.BindTexture(gl::TEXTURE_2D, self.texture2);
             self.gl.BindVertexArray(self.vao);
             self.gl
                 .DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null());
