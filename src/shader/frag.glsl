@@ -1,10 +1,9 @@
 #version 330 core
-precision mediump float;
 
-out vec4 vertexColorOut;
+in vec3 fragColorIn;
 
-in vec3 vertexColorIn;
+out vec4 fragColorOut;
 
 void main() {
-    vertexColorOut = vec4(vertexColorIn, 1.0);
+    fragColorOut = vec4(fragColorIn, 1.0);
 }
