@@ -51,20 +51,20 @@ impl Renderer {
                 gl,
             };
 
-            //#[allow(clippy::identity_op)]
-            //renderer.program.set_vecf2(
-            //    "center",
-            //    calculate_center_of_triangle(
-            //        (VERTEX_DATA[0], VERTEX_DATA[1]),
-            //        (VERTEX_DATA[5 + 0], VERTEX_DATA[5 + 1]),
-            //        (VERTEX_DATA[10 + 0], VERTEX_DATA[10 + 1]),
-            //    ),
-            //).unwrap();
+            // #[allow(clippy::identity_op)]
+            // renderer.program.set_vecf2(
+            //     "center",
+            //     calculate_center_of_triangle(
+            //         (VERTEX_DATA[0], VERTEX_DATA[1]),
+            //         (VERTEX_DATA[5 + 0], VERTEX_DATA[5 + 1]),
+            //         (VERTEX_DATA[10 + 0], VERTEX_DATA[10 + 1]),
+            //     ),
+            // ).unwrap();
 
-            renderer
-                .program
-                .set_float("uniColor", *renderer.uni_float.borrow())
-                .unwrap();
+            // renderer
+            //     .program
+            //     .set_float("uniColor", *renderer.uni_float.borrow())
+            //     .unwrap();
 
             renderer.gl.GenVertexArrays(1, &mut renderer.vao);
             renderer.gl.BindVertexArray(renderer.vao);
@@ -146,11 +146,11 @@ impl Renderer {
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 
-            *self.uni_float.borrow_mut() += 0.01;
+            // *self.uni_float.borrow_mut() += 0.01;
 
-            self.program
-                .set_float("uniColor", *self.uni_float.borrow())
-                .unwrap();
+            //self.program
+            //    .set_float("uniColor", *self.uni_float.borrow())
+            //    .unwrap();
 
             self.program.enable();
             self.gl.BindVertexArray(self.vao);
