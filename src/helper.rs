@@ -40,6 +40,5 @@ mod tests {
             calculate_center_of_triangle((0.0, 0.0), (5.0, 0.0), (3.0, 5.0)),
             (2.666_666_7, 1.666_666_6)
         );
-        dbg!(f32::EPSILON);
     }
 }
