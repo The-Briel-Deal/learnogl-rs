@@ -82,7 +82,7 @@ impl Renderer {
                 gl,
             };
             renderer.gl.ActiveTexture(gl::TEXTURE0);
-            renderer.texture = renderer.create_texture("static/wall.jpg");
+            renderer.texture = renderer.create_texture("static/container.jpg");
             renderer.program.set_int("texture1", 0).unwrap();
 
             renderer.gl.ActiveTexture(gl::TEXTURE1);
@@ -126,14 +126,11 @@ impl Renderer {
     }
     fn create_texture(&self, path: &str) -> GLuint {
         let gl = &self.gl;
-        let img = ImageReader::open(path)
-            .unwrap()
-            .decode()
-            .unwrap();
+        let img = ImageReader::open(path).unwrap().decode().unwrap().flipv();
 
         let img_height = img.height();
         let img_width = img.width();
-        let data = img.to_rgb8();
+        let data = img.to_rgba8();
 
         let mut texture: GLuint = 0;
         unsafe {
@@ -141,14 +138,16 @@ impl Renderer {
             gl.BindTexture(gl::TEXTURE_2D, texture);
             gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
             gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
+            gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
             gl.TexImage2D(
                 gl::TEXTURE_2D,
                 0,
-                gl::RGBA as i32,
+                gl::RGB as i32,
                 img_width as i32,
                 img_height as i32,
                 0,
-                gl::RGB,
+                gl::RGBA,
                 gl::UNSIGNED_BYTE,
                 data.as_ptr() as *const c_void,
             );
@@ -242,8 +241,8 @@ impl Renderer {
 #[rustfmt::skip]
 static VERTEX_DATA: [f32; 28] = [
     // positions   // colors        // texture coords
-     0.5,  0.5,    1.0, 0.0, 0.0,   1.0, 1.0,   // top right
-     0.5, -0.5,    0.0, 1.0, 0.0,   1.0, 0.0,   // bottom right
-    -0.5, -0.5,    0.0, 0.0, 1.0,   0.0, 0.0,   // bottom let
-    -0.5,  0.5,    1.0, 1.0, 0.0,   0.0, 1.0    // top let 
+     0.5,  0.5,    1.0, 0.0, 0.0,   0.6, 0.6,   // top right
+     0.5, -0.5,    0.0, 1.0, 0.0,   0.6, 0.4,   // bottom right
+    -0.5, -0.5,    0.0, 0.0, 1.0,   0.4, 0.4,   // bottom let
+    -0.5,  0.5,    1.0, 1.0, 0.0,   0.4, 0.6    // top let 
 ];
