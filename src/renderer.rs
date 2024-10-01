@@ -241,8 +241,8 @@ impl Renderer {
 #[rustfmt::skip]
 static VERTEX_DATA: [f32; 28] = [
     // positions   // colors        // texture coords
-     0.5,  0.5,    1.0, 0.0, 0.0,   0.6, 0.6,   // top right
-     0.5, -0.5,    0.0, 1.0, 0.0,   0.6, 0.4,   // bottom right
-    -0.5, -0.5,    0.0, 0.0, 1.0,   0.4, 0.4,   // bottom let
-    -0.5,  0.5,    1.0, 1.0, 0.0,   0.4, 0.6    // top let 
+     0.5,  0.5,    1.0, 0.0, 0.0,   1.0, 1.0,   // top right
+     0.5, -0.5,    0.0, 1.0, 0.0,   1.0, 0.0,   // bottom right
+    -0.5, -0.5,    0.0, 0.0, 1.0,   0.0, 0.0,   // bottom let
+    -0.5,  0.5,    1.0, 1.0, 0.0,   0.0, 1.0    // top let 
 ];
