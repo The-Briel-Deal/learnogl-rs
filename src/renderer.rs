@@ -1,4 +1,5 @@
 use std::{
+    cell::RefCell,
     ffi::{c_void, CString},
     ptr::{null, slice_from_raw_parts},
     rc::Rc,
@@ -23,6 +24,7 @@ pub struct Renderer {
     ebo: GLuint,
     texture: GLuint,
     texture2: GLuint,
+    pub texture2mix: RefCell<GLfloat>,
     gl: Rc<Gl>,
 }
 
@@ -79,6 +81,7 @@ impl Renderer {
                 ebo: std::mem::zeroed(),
                 texture: std::mem::zeroed(),
                 texture2: std::mem::zeroed(),
+                texture2mix: RefCell::new(0.0),
                 gl,
             };
             renderer.gl.ActiveTexture(gl::TEXTURE0);
@@ -88,6 +91,11 @@ impl Renderer {
             renderer.gl.ActiveTexture(gl::TEXTURE1);
             renderer.texture2 = renderer.create_texture("static/awesomeface.png");
             renderer.program.set_int("texture2", 1).unwrap();
+
+            renderer
+                .program
+                .set_float("texture2mix", *renderer.texture2mix.borrow())
+                .unwrap();
 
             renderer.gl.GenVertexArrays(1, &mut renderer.vao);
             renderer.gl.BindVertexArray(renderer.vao);
@@ -224,6 +232,9 @@ impl Renderer {
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 
             self.program.enable();
+            self.program
+                .set_float("texture2mix", *self.texture2mix.borrow())
+                .unwrap();
             self.gl.ActiveTexture(gl::TEXTURE0);
             self.gl.BindTexture(gl::TEXTURE_2D, self.texture);
             self.gl.ActiveTexture(gl::TEXTURE1);

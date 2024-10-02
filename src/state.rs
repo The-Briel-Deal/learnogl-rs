@@ -9,7 +9,9 @@ use glutin::{
     surface::{GlSurface, Surface, SwapInterval, WindowSurface},
 };
 use glutin_winit::{DisplayBuilder, GlWindow};
-use winit::{application::ApplicationHandler, event::WindowEvent, window::Window};
+use winit::{
+    application::ApplicationHandler, event::WindowEvent, keyboard::PhysicalKey, window::Window,
+};
 
 use crate::{gl::create_gl_context, renderer::Renderer};
 
@@ -144,6 +146,19 @@ impl ApplicationHandler for App {
                     let renderer = self.renderer.as_ref().unwrap();
                     renderer.resize(size.width as i32, size.height as i32);
                 }
+            }
+            WindowEvent::KeyboardInput {
+                device_id: _,
+                event,
+                is_synthetic: _,
+            } => {
+                if event.physical_key == PhysicalKey::Code(winit::keyboard::KeyCode::KeyJ) {
+                    *self.renderer.as_ref().unwrap().texture2mix.borrow_mut() -= 0.01;
+                }
+                if event.physical_key == PhysicalKey::Code(winit::keyboard::KeyCode::KeyK) {
+                    *self.renderer.as_ref().unwrap().texture2mix.borrow_mut() += 0.01;
+                }
+                dbg!(self.renderer.as_ref().unwrap().texture2mix.borrow());
             }
             _ => (),
         }
