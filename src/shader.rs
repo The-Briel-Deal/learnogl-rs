@@ -19,10 +19,12 @@ pub trait ShaderTrait {
     fn set_mat4(&self, name: &str, val: Mat4) -> Result<(), String>;
 }
 
+#[derive(Clone)]
 pub struct Shader {
     program_id: GLuint,
     gl: Rc<Gl>,
 }
+
 
 impl ShaderTrait for Shader {
     fn get_id(&self) -> GLuint {

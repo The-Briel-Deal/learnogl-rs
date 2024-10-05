@@ -1,18 +1,9 @@
-use std::{
-    borrow::Borrow,
-    ffi::CString,
-    ptr::null,
-    rc::Rc,
-};
+use std::{borrow::Borrow, ffi::CString, ptr::null, rc::Rc};
 
 use glutin::prelude::GlDisplay;
 
 use crate::{
-    gl::{
-        self,
-        types::GLfloat,
-        Gl,
-    },
+    gl::{self, types::GLfloat, Gl},
     logging::setup_logging,
     mesh::Mesh,
     shader::{Shader, ShaderTrait},
@@ -55,6 +46,9 @@ impl Renderer {
     ) {
         unsafe {
             let mesh = &self.mesh_list[0];
+
+            mesh.rotate_by(0.01);
+
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 

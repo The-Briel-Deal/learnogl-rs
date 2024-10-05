@@ -1,6 +1,6 @@
-use std::{cell::RefCell, collections::HashMap, os::raw::c_void};
+use std::{borrow::BorrowMut, cell::RefCell, collections::HashMap, os::raw::c_void};
 
-use glam::{vec3, Mat4};
+use glam::{vec3, Mat4, Vec3};
 use image::ImageReader;
 
 use crate::{
@@ -12,11 +12,18 @@ use crate::{
     shader::{Shader, ShaderTrait},
 };
 
+struct Transform {
+    rotation: GLfloat,
+    scale: Vec3,
+    translation: Vec3,
+}
+
 pub struct Mesh {
+    program: Shader,
     vao: GLuint,
     vbo: GLuint,
     ebo: GLuint,
-    translation: Mat4,
+    transform: RefCell<Transform>,
     texture_map: HashMap<String, GLuint>,
     pub texture_blend: RefCell<GLfloat>,
 }
@@ -24,19 +31,20 @@ pub struct Mesh {
 impl Mesh {
     pub fn new(gl: &Gl, program: &Shader) -> Self {
         let mut mesh = Mesh {
+            program: program.clone(),
             vao: 0,
             vbo: 0,
             ebo: 0,
-            translation: Mat4::from_translation(vec3(0.5, 0.5, 0.5))
-                * Mat4::from_scale(vec3(0.5, 0.5, 0.5))
-                * Mat4::from_rotation_z(45.0_f32.to_radians()),
+            transform: RefCell::new(Transform {
+                rotation: 0.0,
+                translation: vec3(0.5, -0.5, 0.0),
+                scale: vec3(0.75, 0.75, 0.75),
+            }),
             texture_map: HashMap::new(),
             texture_blend: RefCell::new(0.0),
         };
 
         unsafe {
-            program.set_mat4("transform", mesh.translation).unwrap();
-
             gl.ActiveTexture(gl::TEXTURE0);
             mesh.texture_map.insert(
                 "texture1".to_string(),
@@ -82,6 +90,20 @@ impl Mesh {
         };
 
         mesh
+    }
+
+    pub fn rotate_by(&self, degrees: GLfloat) {
+        let mut transform = self.transform.borrow_mut();
+        transform.rotation += degrees;
+
+        let mut transformation_matrix = Mat4::IDENTITY;
+        transformation_matrix *= Mat4::from_translation(transform.translation);
+        transformation_matrix *= Mat4::from_rotation_z(transform.rotation);
+        transformation_matrix *= Mat4::from_scale(transform.scale);
+
+        self.program
+            .set_mat4("transform", transformation_matrix)
+            .unwrap();
     }
 
     pub fn get_texture(&self, name: &str) -> GLuint {
