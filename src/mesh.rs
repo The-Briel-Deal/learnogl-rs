@@ -179,3 +179,19 @@ static VERTEX_DATA: [f32; 28] = [
     -0.5, -0.5,    0.0, 0.0, 1.0,   0.0, 0.0,   // bottom let
     -0.5,  0.5,    1.0, 1.0, 0.0,   0.0, 1.0    // top let 
 ];
+
+#[cfg(test)]
+mod test {
+    use glam::{vec3, vec4, Mat4};
+
+    #[test]
+    fn test_translate() {
+        let mut vec = vec4(1.0, 0.0, 0.0, 1.0);
+
+        let trans = Mat4::from_translation(vec3(1.0, 1.0, 1.0));
+
+        vec = trans * vec;
+
+        assert_eq!(vec, vec4(2.0, 1.0, 1.0, 1.0));
+    }
+}
