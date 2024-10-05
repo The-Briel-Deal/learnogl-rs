@@ -4,3 +4,4 @@ pub mod logging;
 pub mod renderer;
 pub mod shader;
 pub mod state;
+pub mod mesh;
