@@ -34,7 +34,9 @@ pub unsafe fn create_shader(gl: &Gl, shader: GLenum, source: &[u8]) -> GLuint {
 pub fn create_gl_context(window: &Window, gl_config: &Config) -> NotCurrentContext {
     let raw_window_handle = window.window_handle().ok().map(|wh| wh.as_raw());
 
-    let context_attributes = ContextAttributesBuilder::new().with_debug(true).build(raw_window_handle);
+    let context_attributes = ContextAttributesBuilder::new()
+        .with_debug(true)
+        .build(raw_window_handle);
 
     let fallback_context_attributes = ContextAttributesBuilder::new()
         .with_context_api(ContextApi::Gles(None))
