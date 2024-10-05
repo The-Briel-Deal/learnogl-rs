@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, ffi::CString, ptr::null, rc::Rc};
+use std::{borrow::Borrow, ffi::CString, rc::Rc};
 
 use glam::vec3;
 use glutin::prelude::GlDisplay;
