@@ -1,5 +1,6 @@
 use std::{borrow::Borrow, ffi::CString, ptr::null, rc::Rc};
 
+use glam::vec3;
 use glutin::prelude::GlDisplay;
 
 use crate::{
@@ -24,11 +25,15 @@ impl Renderer {
         setup_logging(&gl);
 
         let program = Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl");
-        let mesh = Mesh::new(gl.borrow(), &program);
+
+        let mesh_list = vec![
+            Mesh::new(gl.borrow(), &program, vec3(0.5, -0.5, 0.0)),
+            Mesh::new(gl.borrow(), &program, vec3(0.5, 0.5, 0.0)),
+        ];
 
         Self {
             program,
-            mesh_list: vec![mesh],
+            mesh_list,
             gl,
         }
     }
@@ -45,26 +50,26 @@ impl Renderer {
         alpha: GLfloat,
     ) {
         unsafe {
-            let mesh = &self.mesh_list[0];
+            let mesh1 = &self.mesh_list[0];
+            let mesh2 = &self.mesh_list[1];
 
-            mesh.rotate_by(0.01);
 
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 
             self.program.enable();
             self.program
-                .set_float("textureBlend", *mesh.texture_blend.borrow())
+                .set_float("textureBlend", *mesh1.texture_blend.borrow())
                 .unwrap();
             self.gl.ActiveTexture(gl::TEXTURE0);
             self.gl
-                .BindTexture(gl::TEXTURE_2D, mesh.get_texture("texture1"));
+                .BindTexture(gl::TEXTURE_2D, mesh1.get_texture("texture1"));
             self.gl.ActiveTexture(gl::TEXTURE1);
             self.gl
-                .BindTexture(gl::TEXTURE_2D, mesh.get_texture("texture2"));
-            self.gl.BindVertexArray(mesh.get_vao());
-            self.gl
-                .DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null());
+                .BindTexture(gl::TEXTURE_2D, mesh1.get_texture("texture2"));
+
+            mesh1.draw(&self.gl);
+            mesh2.draw(&self.gl);
         }
     }
     pub fn resize(&self, width: i32, height: i32) {

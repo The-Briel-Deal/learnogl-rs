@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, os::raw::c_void};
+use std::{cell::RefCell, collections::HashMap, os::raw::c_void, ptr::null};
 
 use glam::{vec3, Mat4, Vec3};
 use image::ImageReader;
@@ -29,7 +29,7 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    pub fn new(gl: &Gl, program: &Shader) -> Self {
+    pub fn new(gl: &Gl, program: &Shader, translation: Vec3) -> Self {
         let mut mesh = Mesh {
             program: program.clone(),
             vao: 0,
@@ -37,7 +37,7 @@ impl Mesh {
             ebo: 0,
             transform: RefCell::new(Transform {
                 rotation: 0.0,
-                translation: vec3(0.5, -0.5, 0.0),
+                translation,
                 scale: vec3(0.75, 0.75, 0.75),
             }),
             texture_map: HashMap::new(),
@@ -112,6 +112,14 @@ impl Mesh {
 
     pub fn get_vao(&self) -> GLuint {
         self.vao
+    }
+
+    pub fn draw(&self, gl: &Gl) {
+        self.rotate_by(0.01);
+        unsafe {
+            gl.BindVertexArray(self.get_vao());
+            gl.DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null());
+        }
     }
 
     fn point_attributes_to_buffer(gl: &gl::Gl, vbo: u32, program: u32, verticies: &[f32]) {

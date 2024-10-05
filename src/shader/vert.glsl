@@ -10,7 +10,7 @@ out vec2 texCoord;
 uniform mat4 transform;
 
 void main() {
-    gl_Position = transform * vec4(position, 0.0, 1.0);
+    gl_Position = transform * vec4((mat2(1, -1, 1, 0) * position), 0.0, 1.0);
     fragColorIn = vec3(abs(position), 0.0);
     texCoord = textureCoord;
 }
