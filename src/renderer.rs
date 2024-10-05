@@ -50,26 +50,22 @@ impl Renderer {
         alpha: GLfloat,
     ) {
         unsafe {
-            let mesh1 = &self.mesh_list[0];
-            let mesh2 = &self.mesh_list[1];
-
-
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
+            for mesh in &self.mesh_list {
+                self.program.enable();
+                self.program
+                    .set_float("textureBlend", *mesh.texture_blend.borrow())
+                    .unwrap();
+                self.gl.ActiveTexture(gl::TEXTURE0);
+                self.gl
+                    .BindTexture(gl::TEXTURE_2D, mesh.get_texture("texture1"));
+                self.gl.ActiveTexture(gl::TEXTURE1);
+                self.gl
+                    .BindTexture(gl::TEXTURE_2D, mesh.get_texture("texture2"));
 
-            self.program.enable();
-            self.program
-                .set_float("textureBlend", *mesh1.texture_blend.borrow())
-                .unwrap();
-            self.gl.ActiveTexture(gl::TEXTURE0);
-            self.gl
-                .BindTexture(gl::TEXTURE_2D, mesh1.get_texture("texture1"));
-            self.gl.ActiveTexture(gl::TEXTURE1);
-            self.gl
-                .BindTexture(gl::TEXTURE_2D, mesh1.get_texture("texture2"));
-
-            mesh1.draw(&self.gl);
-            mesh2.draw(&self.gl);
+                mesh.draw(&self.gl)
+            }
         }
     }
     pub fn resize(&self, width: i32, height: i32) {
