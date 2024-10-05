@@ -154,10 +154,10 @@ impl ApplicationHandler for App {
             } => {
                 let mesh = &self.renderer.as_ref().unwrap().mesh_list[0];
                 if event.physical_key == PhysicalKey::Code(winit::keyboard::KeyCode::KeyJ) {
-                    *mesh.texture2mix.borrow_mut() -= 0.01;
+                    *mesh.textureBlend.borrow_mut() -= 0.01;
                 }
                 if event.physical_key == PhysicalKey::Code(winit::keyboard::KeyCode::KeyK) {
-                    *mesh.texture2mix.borrow_mut() += 0.01;
+                    *mesh.textureBlend.borrow_mut() += 0.01;
                 }
             }
             _ => (),

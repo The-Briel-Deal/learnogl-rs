@@ -24,7 +24,7 @@ pub struct Mesh {
     ebo: GLuint,
     texture: GLuint,
     texture2: GLuint,
-    pub texture2mix: RefCell<GLfloat>,
+    pub textureBlend: RefCell<GLfloat>,
 }
 
 pub struct Renderer {
@@ -47,42 +47,47 @@ impl Renderer {
             gl,
         };
 
+        renderer.mesh_list.push(renderer.create_mesh());
+
+        renderer
+    }
+
+    fn create_mesh(&self) -> Mesh {
         let mut mesh = Mesh {
             vao: 0,
             vbo: 0,
             ebo: 0,
             texture: 0,
             texture2: 0,
-            texture2mix: RefCell::new(0.0),
+            textureBlend: RefCell::new(0.0),
         };
 
         unsafe {
-            renderer.gl.ActiveTexture(gl::TEXTURE0);
-            mesh.texture = renderer.create_texture("static/container.jpg");
-            renderer.program.set_int("texture1", 0).unwrap();
+            self.gl.ActiveTexture(gl::TEXTURE0);
+            mesh.texture = self.create_texture("static/container.jpg");
+            self.program.set_int("texture1", 0).unwrap();
 
-            renderer.gl.ActiveTexture(gl::TEXTURE1);
-            mesh.texture2 = renderer.create_texture("static/awesomeface.png");
-            renderer.program.set_int("texture2", 1).unwrap();
+            self.gl.ActiveTexture(gl::TEXTURE1);
+            mesh.texture2 = self.create_texture("static/awesomeface.png");
+            self.program.set_int("texture2", 1).unwrap();
 
-            renderer
-                .program
-                .set_float("texture2mix", *mesh.texture2mix.borrow())
+            self.program
+                .set_float("textureBlend", *mesh.textureBlend.borrow())
                 .unwrap();
 
-            renderer.gl.GenVertexArrays(1, &mut mesh.vao);
-            renderer.gl.BindVertexArray(mesh.vao);
+            self.gl.GenVertexArrays(1, &mut mesh.vao);
+            self.gl.BindVertexArray(mesh.vao);
             /* EBO start*/
 
-            renderer.gl.GenBuffers(1, &mut mesh.ebo);
-            renderer.gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, mesh.ebo);
+            self.gl.GenBuffers(1, &mut mesh.ebo);
+            self.gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, mesh.ebo);
 
             let ebo_indicies = [
                 0, 1, 3, // Triangle One
                 1, 2, 3, // Triangle Two
             ];
 
-            renderer.gl.BufferData(
+            self.gl.BufferData(
                 gl::ELEMENT_ARRAY_BUFFER,
                 size_of_val(&ebo_indicies) as isize,
                 ebo_indicies.as_ptr() as *const c_void,
@@ -91,17 +96,17 @@ impl Renderer {
 
             /* EBO end */
 
-            renderer.gl.GenBuffers(1, &mut mesh.vbo);
+            self.gl.GenBuffers(1, &mut mesh.vbo);
 
             Self::point_attributes_to_buffer(
-                &renderer.gl,
+                &self.gl,
                 mesh.vbo,
-                renderer.program.get_id(),
+                self.program.get_id(),
                 &VERTEX_DATA,
             );
-        }
-        renderer.mesh_list.push(mesh);
-        renderer
+        };
+
+        mesh
     }
     fn create_texture(&self, path: &str) -> GLuint {
         let gl = &self.gl;
@@ -205,7 +210,7 @@ impl Renderer {
 
             self.program.enable();
             self.program
-                .set_float("texture2mix", *mesh.texture2mix.borrow())
+                .set_float("textureBlend", *mesh.textureBlend.borrow())
                 .unwrap();
             self.gl.ActiveTexture(gl::TEXTURE0);
             self.gl.BindTexture(gl::TEXTURE_2D, mesh.texture);
