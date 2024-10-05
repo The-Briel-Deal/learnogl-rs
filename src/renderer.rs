@@ -24,7 +24,7 @@ pub struct Mesh {
     ebo: GLuint,
     texture: GLuint,
     texture2: GLuint,
-    pub textureBlend: RefCell<GLfloat>,
+    pub texture_blend: RefCell<GLfloat>,
 }
 
 pub struct Renderer {
@@ -59,7 +59,7 @@ impl Renderer {
             ebo: 0,
             texture: 0,
             texture2: 0,
-            textureBlend: RefCell::new(0.0),
+            texture_blend: RefCell::new(0.0),
         };
 
         unsafe {
@@ -72,7 +72,7 @@ impl Renderer {
             self.program.set_int("texture2", 1).unwrap();
 
             self.program
-                .set_float("textureBlend", *mesh.textureBlend.borrow())
+                .set_float("textureBlend", *mesh.texture_blend.borrow())
                 .unwrap();
 
             self.gl.GenVertexArrays(1, &mut mesh.vao);
@@ -210,7 +210,7 @@ impl Renderer {
 
             self.program.enable();
             self.program
-                .set_float("textureBlend", *mesh.textureBlend.borrow())
+                .set_float("textureBlend", *mesh.texture_blend.borrow())
                 .unwrap();
             self.gl.ActiveTexture(gl::TEXTURE0);
             self.gl.BindTexture(gl::TEXTURE_2D, mesh.texture);
