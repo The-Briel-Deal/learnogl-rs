@@ -18,14 +18,18 @@ use crate::{
     shader::{Shader, ShaderTrait},
 };
 
-pub struct Renderer {
-    program: Shader,
+pub struct Mesh {
     vao: GLuint,
     vbo: GLuint,
     ebo: GLuint,
     texture: GLuint,
     texture2: GLuint,
     pub texture2mix: RefCell<GLfloat>,
+}
+
+pub struct Renderer {
+    program: Shader,
+    pub mesh_list: Vec<Mesh>,
     gl: Rc<Gl>,
 }
 
@@ -39,37 +43,39 @@ impl Renderer {
 
         let mut renderer = Self {
             program: Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl"),
+            mesh_list: vec![],
+            gl,
+        };
+
+        let mut mesh = Mesh {
             vao: 0,
             vbo: 0,
             ebo: 0,
             texture: 0,
             texture2: 0,
             texture2mix: RefCell::new(0.0),
-            gl,
         };
 
         unsafe {
             renderer.gl.ActiveTexture(gl::TEXTURE0);
-            renderer.texture = renderer.create_texture("static/container.jpg");
+            mesh.texture = renderer.create_texture("static/container.jpg");
             renderer.program.set_int("texture1", 0).unwrap();
 
             renderer.gl.ActiveTexture(gl::TEXTURE1);
-            renderer.texture2 = renderer.create_texture("static/awesomeface.png");
+            mesh.texture2 = renderer.create_texture("static/awesomeface.png");
             renderer.program.set_int("texture2", 1).unwrap();
 
             renderer
                 .program
-                .set_float("texture2mix", *renderer.texture2mix.borrow())
+                .set_float("texture2mix", *mesh.texture2mix.borrow())
                 .unwrap();
 
-            renderer.gl.GenVertexArrays(1, &mut renderer.vao);
-            renderer.gl.BindVertexArray(renderer.vao);
+            renderer.gl.GenVertexArrays(1, &mut mesh.vao);
+            renderer.gl.BindVertexArray(mesh.vao);
             /* EBO start*/
 
-            renderer.gl.GenBuffers(1, &mut renderer.ebo);
-            renderer
-                .gl
-                .BindBuffer(gl::ELEMENT_ARRAY_BUFFER, renderer.ebo);
+            renderer.gl.GenBuffers(1, &mut mesh.ebo);
+            renderer.gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, mesh.ebo);
 
             let ebo_indicies = [
                 0, 1, 3, // Triangle One
@@ -85,17 +91,17 @@ impl Renderer {
 
             /* EBO end */
 
-            renderer.gl.GenBuffers(1, &mut renderer.vbo);
+            renderer.gl.GenBuffers(1, &mut mesh.vbo);
 
             Self::point_attributes_to_buffer(
                 &renderer.gl,
-                renderer.vbo,
+                mesh.vbo,
                 renderer.program.get_id(),
                 &VERTEX_DATA,
             );
-
-            renderer
         }
+        renderer.mesh_list.push(mesh);
+        renderer
     }
     fn create_texture(&self, path: &str) -> GLuint {
         let gl = &self.gl;
@@ -193,18 +199,19 @@ impl Renderer {
         alpha: GLfloat,
     ) {
         unsafe {
+            let mesh = &self.mesh_list[0];
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
 
             self.program.enable();
             self.program
-                .set_float("texture2mix", *self.texture2mix.borrow())
+                .set_float("texture2mix", *mesh.texture2mix.borrow())
                 .unwrap();
             self.gl.ActiveTexture(gl::TEXTURE0);
-            self.gl.BindTexture(gl::TEXTURE_2D, self.texture);
+            self.gl.BindTexture(gl::TEXTURE_2D, mesh.texture);
             self.gl.ActiveTexture(gl::TEXTURE1);
-            self.gl.BindTexture(gl::TEXTURE_2D, self.texture2);
-            self.gl.BindVertexArray(self.vao);
+            self.gl.BindTexture(gl::TEXTURE_2D, mesh.texture2);
+            self.gl.BindVertexArray(mesh.vao);
             self.gl
                 .DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null());
         }

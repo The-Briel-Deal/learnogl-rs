@@ -152,13 +152,13 @@ impl ApplicationHandler for App {
                 event,
                 is_synthetic: _,
             } => {
+                let mesh = &self.renderer.as_ref().unwrap().mesh_list[0];
                 if event.physical_key == PhysicalKey::Code(winit::keyboard::KeyCode::KeyJ) {
-                    *self.renderer.as_ref().unwrap().texture2mix.borrow_mut() -= 0.01;
+                    *mesh.texture2mix.borrow_mut() -= 0.01;
                 }
                 if event.physical_key == PhysicalKey::Code(winit::keyboard::KeyCode::KeyK) {
-                    *self.renderer.as_ref().unwrap().texture2mix.borrow_mut() += 0.01;
+                    *mesh.texture2mix.borrow_mut() += 0.01;
                 }
-                dbg!(self.renderer.as_ref().unwrap().texture2mix.borrow());
             }
             _ => (),
         }
