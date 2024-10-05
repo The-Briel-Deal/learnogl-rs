@@ -1,18 +1,16 @@
 use std::{
     borrow::Borrow,
-    cell::RefCell,
-    ffi::{c_void, CString},
+    ffi::CString,
     ptr::null,
     rc::Rc,
 };
 
 use glutin::prelude::GlDisplay;
-use image::ImageReader;
 
 use crate::{
     gl::{
         self,
-        types::{GLfloat, GLuint},
+        types::GLfloat,
         Gl,
     },
     logging::setup_logging,
