@@ -1,5 +1,7 @@
 use std::{fs, rc::Rc};
 
+use glam::Mat4;
+
 use crate::{
     gl::{self, create_shader, types::GLuint, Gl},
     helper::add_null_term,
@@ -13,7 +15,8 @@ pub trait ShaderTrait {
     fn set_bool(&self, name: &str, val: bool) -> Result<(), String>;
     fn set_int(&self, name: &str, val: i32) -> Result<(), String>;
     fn set_float(&self, name: &str, val: f32) -> Result<(), String>;
-    fn set_vecf2(&self, name: &str, val: (f32, f32)) -> Result<(), String>;
+    fn set_vec2(&self, name: &str, val: (f32, f32)) -> Result<(), String>;
+    fn set_mat4(&self, name: &str, val: Mat4) -> Result<(), String>;
 }
 
 pub struct Shader {
@@ -71,12 +74,24 @@ impl ShaderTrait for Shader {
         }
     }
 
-    fn set_vecf2(&self, name: &str, val: (f32, f32)) -> Result<(), String> {
+    fn set_vec2(&self, name: &str, val: (f32, f32)) -> Result<(), String> {
         match self.get_uniform_id(name) {
             Ok(id) => {
                 self.enable();
                 unsafe {
                     self.gl.Uniform2f(id, val.0, val.1);
+                }
+                Ok(())
+            }
+            Err(err) => Err(err),
+        }
+    }
+    fn set_mat4(&self, name: &str, val: Mat4) -> Result<(), String> {
+        match self.get_uniform_id(name) {
+            Ok(id) => {
+                self.enable();
+                unsafe {
+                    self.gl.UniformMatrix4fv(id, 1, gl::FALSE, val.as_ref().as_ptr());
                 }
                 Ok(())
             }

@@ -1,5 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, os::raw::c_void};
 
+use glam::{vec3, Mat4};
 use image::ImageReader;
 
 use crate::{
@@ -15,6 +16,7 @@ pub struct Mesh {
     vao: GLuint,
     vbo: GLuint,
     ebo: GLuint,
+    translation: Mat4,
     texture_map: HashMap<String, GLuint>,
     pub texture_blend: RefCell<GLfloat>,
 }
@@ -25,11 +27,14 @@ impl Mesh {
             vao: 0,
             vbo: 0,
             ebo: 0,
+            translation: Mat4::from_translation(vec3(0.5, 0.5, 0.5)),
             texture_map: HashMap::new(),
             texture_blend: RefCell::new(0.0),
         };
 
         unsafe {
+            program.set_mat4("transform", mesh.translation).unwrap();
+
             gl.ActiveTexture(gl::TEXTURE0);
             mesh.texture_map.insert(
                 "texture1".to_string(),
