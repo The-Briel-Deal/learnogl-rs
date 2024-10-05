@@ -1,4 +1,5 @@
 use std::{
+    borrow::Borrow,
     cell::RefCell,
     ffi::{c_void, CString},
     ptr::null,
@@ -27,32 +28,8 @@ pub struct Mesh {
     pub texture_blend: RefCell<GLfloat>,
 }
 
-pub struct Renderer {
-    program: Shader,
-    pub mesh_list: Vec<Mesh>,
-    gl: Rc<Gl>,
-}
-
-impl Renderer {
-    pub fn new<D: GlDisplay>(gl_display: &D) -> Renderer {
-        let gl = Rc::new(gl::Gl::load_with(|symbol| {
-            let symbol = CString::new(symbol).unwrap();
-            gl_display.get_proc_address(symbol.as_c_str()).cast()
-        }));
-        setup_logging(&gl);
-
-        let mut renderer = Self {
-            program: Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl"),
-            mesh_list: vec![],
-            gl,
-        };
-
-        renderer.mesh_list.push(renderer.create_mesh());
-
-        renderer
-    }
-
-    fn create_mesh(&self) -> Mesh {
+impl Mesh {
+    fn new(gl: &Gl, program: &Shader) -> Self {
         let mut mesh = Mesh {
             vao: 0,
             vbo: 0,
@@ -63,31 +40,31 @@ impl Renderer {
         };
 
         unsafe {
-            self.gl.ActiveTexture(gl::TEXTURE0);
-            mesh.texture = self.create_texture("static/container.jpg");
-            self.program.set_int("texture1", 0).unwrap();
+            gl.ActiveTexture(gl::TEXTURE0);
+            mesh.texture = Mesh::create_texture(gl, "static/container.jpg");
+            program.set_int("texture1", 0).unwrap();
 
-            self.gl.ActiveTexture(gl::TEXTURE1);
-            mesh.texture2 = self.create_texture("static/awesomeface.png");
-            self.program.set_int("texture2", 1).unwrap();
+            gl.ActiveTexture(gl::TEXTURE1);
+            mesh.texture2 = Mesh::create_texture(gl, "static/awesomeface.png");
+            program.set_int("texture2", 1).unwrap();
 
-            self.program
+            program
                 .set_float("textureBlend", *mesh.texture_blend.borrow())
                 .unwrap();
 
-            self.gl.GenVertexArrays(1, &mut mesh.vao);
-            self.gl.BindVertexArray(mesh.vao);
+            gl.GenVertexArrays(1, &mut mesh.vao);
+            gl.BindVertexArray(mesh.vao);
             /* EBO start*/
 
-            self.gl.GenBuffers(1, &mut mesh.ebo);
-            self.gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, mesh.ebo);
+            gl.GenBuffers(1, &mut mesh.ebo);
+            gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, mesh.ebo);
 
             let ebo_indicies = [
                 0, 1, 3, // Triangle One
                 1, 2, 3, // Triangle Two
             ];
 
-            self.gl.BufferData(
+            gl.BufferData(
                 gl::ELEMENT_ARRAY_BUFFER,
                 size_of_val(&ebo_indicies) as isize,
                 ebo_indicies.as_ptr() as *const c_void,
@@ -96,20 +73,15 @@ impl Renderer {
 
             /* EBO end */
 
-            self.gl.GenBuffers(1, &mut mesh.vbo);
+            gl.GenBuffers(1, &mut mesh.vbo);
 
-            Self::point_attributes_to_buffer(
-                &self.gl,
-                mesh.vbo,
-                self.program.get_id(),
-                &VERTEX_DATA,
-            );
+            Renderer::point_attributes_to_buffer(&gl, mesh.vbo, program.get_id(), &VERTEX_DATA);
         };
 
         mesh
     }
-    fn create_texture(&self, path: &str) -> GLuint {
-        let gl = &self.gl;
+
+    fn create_texture(gl: &Gl, path: &str) -> GLuint {
         let img = ImageReader::open(path).unwrap().decode().unwrap().flipv();
 
         let img_height = img.height();
@@ -140,6 +112,32 @@ impl Renderer {
 
         texture
     }
+}
+
+pub struct Renderer {
+    program: Shader,
+    pub mesh_list: Vec<Mesh>,
+    gl: Rc<Gl>,
+}
+
+impl Renderer {
+    pub fn new<D: GlDisplay>(gl_display: &D) -> Self {
+        let gl = Rc::new(gl::Gl::load_with(|symbol| {
+            let symbol = CString::new(symbol).unwrap();
+            gl_display.get_proc_address(symbol.as_c_str()).cast()
+        }));
+        setup_logging(&gl);
+
+        let program = Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl");
+        let mesh = Mesh::new(gl.borrow(), &program);
+
+        Self {
+            program,
+            mesh_list: vec![mesh],
+            gl,
+        }
+    }
+
     fn point_attributes_to_buffer(gl: &gl::Gl, vbo: u32, program: u32, verticies: &[f32]) {
         unsafe {
             gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
