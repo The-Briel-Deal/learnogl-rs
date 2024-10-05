@@ -27,7 +27,9 @@ impl Mesh {
             vao: 0,
             vbo: 0,
             ebo: 0,
-            translation: Mat4::from_translation(vec3(0.5, 0.5, 0.5)),
+            translation: Mat4::from_translation(vec3(0.5, 0.5, 0.5))
+                * Mat4::from_scale(vec3(0.5, 0.5, 0.5))
+                * Mat4::from_rotation_z(45.0_f32.to_radians()),
             texture_map: HashMap::new(),
             texture_blend: RefCell::new(0.0),
         };
