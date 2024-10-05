@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     ffi::{c_void, CString},
-    ptr::{null, slice_from_raw_parts},
+    ptr::null,
     rc::Rc,
 };
 
@@ -10,7 +10,7 @@ use image::ImageReader;
 
 use crate::{
     gl::{
-        self, get_gl_string,
+        self,
         types::{GLfloat, GLuint},
         Gl,
     },
