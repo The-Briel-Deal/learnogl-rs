@@ -35,20 +35,20 @@ impl Renderer {
             let symbol = CString::new(symbol).unwrap();
             gl_display.get_proc_address(symbol.as_c_str()).cast()
         }));
-
         setup_logging(&gl);
 
+        let mut renderer = Self {
+            program: Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl"),
+            vao: 0,
+            vbo: 0,
+            ebo: 0,
+            texture: 0,
+            texture2: 0,
+            texture2mix: RefCell::new(0.0),
+            gl,
+        };
+
         unsafe {
-            let mut renderer = Self {
-                program: Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl"),
-                vao: std::mem::zeroed(),
-                vbo: std::mem::zeroed(),
-                ebo: std::mem::zeroed(),
-                texture: std::mem::zeroed(),
-                texture2: std::mem::zeroed(),
-                texture2mix: RefCell::new(0.0),
-                gl,
-            };
             renderer.gl.ActiveTexture(gl::TEXTURE0);
             renderer.texture = renderer.create_texture("static/container.jpg");
             renderer.program.set_int("texture1", 0).unwrap();
