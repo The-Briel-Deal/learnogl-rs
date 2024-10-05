@@ -29,7 +29,6 @@ pub struct Renderer {
     gl: Rc<Gl>,
 }
 
-// expected fn pointer `extern "system" fn(u32, u32, u32, u32, i32, *const i8, *mut std::ffi::c_void)`
 impl Renderer {
     pub fn new<D: GlDisplay>(gl_display: &D) -> Renderer {
         let gl = Rc::new(gl::Gl::load_with(|symbol| {
@@ -39,15 +38,6 @@ impl Renderer {
 
         setup_logging(&gl);
 
-        if let Some(renderer) = get_gl_string(&gl, gl::RENDERER) {
-            println!("Running on {}", renderer.to_string_lossy());
-        }
-        if let Some(version) = get_gl_string(&gl, gl::VERSION) {
-            println!("OpenGL Version {}", version.to_string_lossy());
-        }
-        if let Some(shaders_version) = get_gl_string(&gl, gl::SHADING_LANGUAGE_VERSION) {
-            println!("Shaders version on {}", shaders_version.to_string_lossy());
-        }
         unsafe {
             let mut renderer = Self {
                 program: Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl"),

@@ -1,6 +1,6 @@
 use std::ptr::{null, slice_from_raw_parts};
 
-use crate::gl::{self, Gl};
+use crate::gl::{self, get_gl_string, Gl};
 
 extern "system" fn handle_log(
     _source: u32,
@@ -28,6 +28,15 @@ extern "system" fn handle_log(
 }
 
 pub fn setup_logging(gl: &Gl) {
+    if let Some(renderer) = get_gl_string(gl, gl::RENDERER) {
+        println!("Running on {}", renderer.to_string_lossy());
+    }
+    if let Some(version) = get_gl_string(gl, gl::VERSION) {
+        println!("OpenGL Version {}", version.to_string_lossy());
+    }
+    if let Some(shaders_version) = get_gl_string(gl, gl::SHADING_LANGUAGE_VERSION) {
+        println!("Shaders version on {}", shaders_version.to_string_lossy());
+    }
     unsafe {
         gl.Enable(gl::DEBUG_OUTPUT);
         gl.DebugMessageCallback(Some(handle_log), null());
