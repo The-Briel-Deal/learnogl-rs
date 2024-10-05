@@ -25,7 +25,6 @@ pub struct Shader {
     gl: Rc<Gl>,
 }
 
-
 impl ShaderTrait for Shader {
     fn get_id(&self) -> GLuint {
         self.program_id
@@ -93,7 +92,8 @@ impl ShaderTrait for Shader {
             Ok(id) => {
                 self.enable();
                 unsafe {
-                    self.gl.UniformMatrix4fv(id, 1, gl::FALSE, val.as_ref().as_ptr());
+                    self.gl
+                        .UniformMatrix4fv(id, 1, gl::FALSE, val.as_ref().as_ptr());
                 }
                 Ok(())
             }
