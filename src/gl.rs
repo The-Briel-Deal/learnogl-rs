@@ -12,6 +12,22 @@ use glutin::{
 use types::{GLenum, GLuint};
 use winit::{raw_window_handle::HasWindowHandle, window::Window};
 
+impl Gl {
+    pub fn get_aspect_ratio(&self) -> f32 {
+        let mut data: [types::GLint; 4] = [0, 0, 0, 0];
+        let data_ptr = data.as_mut_ptr();
+
+        unsafe { self.GetIntegerv(VIEWPORT, data_ptr) };
+
+        let x = data[0];
+        let y = data[1];
+        let width = data[2];
+        let height = data[3];
+
+        (width - x) as f32 / (height - y) as f32
+    }
+}
+
 pub fn get_gl_string(gl: &Gl, variant: GLenum) -> Option<&'static CStr> {
     unsafe {
         let s = gl.GetString(variant);

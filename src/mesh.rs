@@ -7,10 +7,9 @@ use rand::random;
 use crate::{
     gl::{
         self,
-        types::{GLfloat, GLint, GLuint},
+        types::{GLfloat, GLuint},
         Gl,
-    },
-    shader::{Shader, ShaderTrait},
+    }, helper::get_rand_angle, shader::{Shader, ShaderTrait}
 };
 
 struct Transform {
@@ -119,7 +118,7 @@ impl Mesh {
         let view_matrix = Mat4::IDENTITY * Mat4::from_translation(Vec3::new(0.0, 0.0, -3.0));
 
         let projection_matrix =
-            Mat4::perspective_rh_gl(80.0_f32.to_radians(), get_aspect_ratio(gl), 0.1, 100.0);
+            Mat4::perspective_rh_gl(80.0_f32.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
 
         let output_matrix = Mat4::IDENTITY * projection_matrix * view_matrix * model_matrix; // * transformation_matrix;
 
@@ -205,30 +204,6 @@ impl Mesh {
     }
 }
 
-fn get_aspect_ratio(gl: &Gl) -> f32 {
-    let mut data: [GLint; 4] = [0, 0, 0, 0];
-    let data_ptr = data.as_mut_ptr();
-    unsafe { gl.GetIntegerv(gl::VIEWPORT, data_ptr) };
-    let x = data[0];
-    let y = data[1];
-    let width = data[2];
-    let height = data[3];
-
-    (width - x) as f32 / (height - y) as f32
-}
-
-/// Returns a random angle between 0.0 and 360.0
-/// ```
-/// # use learn_ogl_rs::mesh::get_rand_angle;
-/// for i in 0..1000 {
-///     let angle = get_rand_angle();
-///     assert!(angle <= 360.0);
-///     assert!(angle >= 0.0);
-/// }
-/// ```
-pub fn get_rand_angle() -> f32 {
-    random::<f32>() * 360.0_f32
-}
 
 #[rustfmt::skip]
 static VERTEX_DATA: [f32; 180] = [

@@ -1,8 +1,23 @@
+use rand::random;
+
 pub fn add_null_term(str: &[u8]) -> Vec<u8> {
     let mut str = Vec::from(str);
     str.push(b'\0');
 
     str
+}
+
+/// Returns a random angle between 0.0 and 360.0
+/// ```
+/// # use learn_ogl_rs::helper::get_rand_angle;
+/// for i in 0..1000 {
+///     let angle = get_rand_angle();
+///     assert!(angle <= 360.0);
+///     assert!(angle >= 0.0);
+/// }
+/// ```
+pub fn get_rand_angle() -> f32 {
+    random::<f32>() * 360.0_f32
 }
 
 pub fn calculate_center_of_triangle(
