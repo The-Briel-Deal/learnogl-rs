@@ -2,7 +2,6 @@ use std::{cell::RefCell, collections::HashMap, os::raw::c_void};
 
 use glam::{vec3, Mat4, Vec3};
 use image::ImageReader;
-use rand::random;
 
 use crate::{
     gl::{
