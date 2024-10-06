@@ -42,7 +42,7 @@ impl Mesh {
                 scale: vec3(1.0, 1.0, 1.0),
             }),
             texture_map: HashMap::new(),
-            texture_blend: RefCell::new(0.0),
+            texture_blend: RefCell::new(0.2),
         };
 
         unsafe {
@@ -119,7 +119,7 @@ impl Mesh {
         let view_matrix = Mat4::IDENTITY * Mat4::from_translation(Vec3::new(0.0, 0.0, -3.0));
 
         let projection_matrix =
-            Mat4::perspective_rh_gl(45.0_f32.to_radians(), get_aspect_ratio(gl), 0.1, 100.0);
+            Mat4::perspective_rh_gl(80.0_f32.to_radians(), get_aspect_ratio(gl), 0.1, 100.0);
 
         let output_matrix = Mat4::IDENTITY * projection_matrix * view_matrix * model_matrix; // * transformation_matrix;
 
