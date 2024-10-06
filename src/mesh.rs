@@ -39,7 +39,7 @@ impl Mesh {
             transform: RefCell::new(Transform {
                 rotation: get_rand_angle(),
                 translation,
-                scale: vec3(0.5, 0.75, 0.75),
+                scale: vec3(1.0, 1.0, 1.0),
             }),
             texture_map: HashMap::new(),
             texture_blend: RefCell::new(0.0),
