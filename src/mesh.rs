@@ -96,18 +96,21 @@ impl Mesh {
         let mut transform = self.transform.borrow_mut();
         transform.rotation += degrees;
 
-        let model_matrix = Mat4::IDENTITY * Mat4::from_rotation_x((-80.0_f32).to_radians());
+        let model_matrix = Mat4::IDENTITY
+            * Mat4::from_rotation_x((transform.rotation / 2.0).to_radians())
+            * Mat4::from_rotation_y(transform.rotation.to_radians());
 
         let view_matrix = Mat4::IDENTITY * Mat4::from_translation(Vec3::new(0.0, 0.0, -3.0));
 
         let projection_matrix =
             Mat4::perspective_rh_gl(45.0_f32.to_radians(), 800.0_f32 / 600.0_f32, 0.1, 100.0);
 
-        // Object Transformation
-        let _transformation_matrix = Mat4::IDENTITY
-            * Mat4::from_translation(transform.translation)
-            * Mat4::from_rotation_z(transform.rotation.to_radians())
-            * Mat4::from_scale(transform.scale);
+        /* # Object Transformation
+         * let _transformation_matrix = Mat4::IDENTITY
+         *     * Mat4::from_translation(transform.translation)
+         *     * Mat4::from_rotation_z(transform.rotation.to_radians())
+         *     * Mat4::from_scale(transform.scale);
+         */
 
         let output_matrix = Mat4::IDENTITY * projection_matrix * view_matrix * model_matrix; // * transformation_matrix;
 

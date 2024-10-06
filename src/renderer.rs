@@ -22,6 +22,8 @@ impl Renderer {
             let symbol = CString::new(symbol).unwrap();
             gl_display.get_proc_address(symbol.as_c_str()).cast()
         }));
+
+        unsafe { gl.Enable(gl::DEPTH_TEST) };
         setup_logging(&gl);
 
         let program = Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl");
@@ -51,7 +53,7 @@ impl Renderer {
     ) {
         unsafe {
             self.gl.ClearColor(red, green, blue, alpha);
-            self.gl.Clear(gl::COLOR_BUFFER_BIT);
+            self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
             self.program.enable();
             for mesh in &self.mesh_list {
                 self.program
