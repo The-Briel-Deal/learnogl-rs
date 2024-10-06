@@ -52,8 +52,8 @@ impl Renderer {
         unsafe {
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT);
+            self.program.enable();
             for mesh in &self.mesh_list {
-                self.program.enable();
                 self.program
                     .set_float("textureBlend", *mesh.texture_blend.borrow())
                     .unwrap();
@@ -63,7 +63,6 @@ impl Renderer {
                 self.gl.ActiveTexture(gl::TEXTURE1);
                 self.gl
                     .BindTexture(gl::TEXTURE_2D, mesh.get_texture("texture2"));
-
                 mesh.draw(&self.gl)
             }
         }

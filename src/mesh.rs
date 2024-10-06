@@ -96,14 +96,22 @@ impl Mesh {
         let mut transform = self.transform.borrow_mut();
         transform.rotation += degrees;
 
-        let mut transformation_matrix = Mat4::IDENTITY;
-        transformation_matrix *= Mat4::from_translation(transform.translation);
-        transformation_matrix *= Mat4::from_rotation_z(transform.rotation);
-        transformation_matrix *= Mat4::from_scale(transform.scale);
+        let model_matrix = Mat4::IDENTITY * Mat4::from_rotation_x((-80.0_f32).to_radians());
 
-        self.program
-            .set_mat4("transform", transformation_matrix)
-            .unwrap();
+        let view_matrix = Mat4::IDENTITY * Mat4::from_translation(Vec3::new(0.0, 0.0, -3.0));
+
+        let projection_matrix =
+            Mat4::perspective_rh_gl(45.0_f32.to_radians(), 800.0_f32 / 600.0_f32, 0.1, 100.0);
+
+        // Object Transformation
+        let _transformation_matrix = Mat4::IDENTITY
+            * Mat4::from_translation(transform.translation)
+            * Mat4::from_rotation_z(transform.rotation.to_radians())
+            * Mat4::from_scale(transform.scale);
+
+        let output_matrix = Mat4::IDENTITY * projection_matrix * view_matrix * model_matrix; // * transformation_matrix;
+
+        self.program.set_mat4("transform", output_matrix).unwrap();
     }
 
     pub fn get_texture(&self, name: &str) -> GLuint {
@@ -115,10 +123,10 @@ impl Mesh {
     }
 
     pub fn draw(&self, gl: &Gl) {
-        self.rotate_by(0.01);
+        self.rotate_by(1.0);
         unsafe {
             gl.BindVertexArray(self.get_vao());
-            gl.DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null());
+            gl.DrawArrays(gl::TRIANGLES, 0, 36);
         }
     }
 
@@ -134,8 +142,6 @@ impl Mesh {
 
             let pos_attrib =
                 gl.GetAttribLocation(program, b"position\0".as_ptr() as *const gl::types::GLchar);
-            let color_attrib =
-                gl.GetAttribLocation(program, b"color\0".as_ptr() as *const gl::types::GLchar);
             let texture_coord_attrib = gl.GetAttribLocation(
                 program,
                 b"textureCoord\0".as_ptr() as *const gl::types::GLchar,
@@ -144,33 +150,24 @@ impl Mesh {
             #[allow(clippy::erasing_op)] // I am turning this off so that the last arg is clear.
             gl.VertexAttribPointer(
                 pos_attrib as gl::types::GLuint,
-                2,
-                gl::FLOAT,
-                gl::FALSE,
-                7 * std::mem::size_of::<f32>() as gl::types::GLsizei,
-                (0 * size_of::<f32>()) as *const c_void,
-            );
-            gl.VertexAttribPointer(
-                color_attrib as gl::types::GLuint,
                 3,
                 gl::FLOAT,
                 gl::FALSE,
-                7 * std::mem::size_of::<f32>() as gl::types::GLsizei,
-                (2 * size_of::<f32>()) as *const c_void,
+                5 * std::mem::size_of::<f32>() as gl::types::GLsizei,
+                (0 * size_of::<f32>()) as *const c_void,
             );
             gl.VertexAttribPointer(
                 texture_coord_attrib as gl::types::GLuint,
                 2,
                 gl::FLOAT,
                 gl::FALSE,
-                7 * std::mem::size_of::<f32>() as gl::types::GLsizei,
-                (5 * size_of::<f32>()) as *const c_void,
+                5 * std::mem::size_of::<f32>() as gl::types::GLsizei,
+                (3 * size_of::<f32>()) as *const c_void,
             );
 
             gl.BindBuffer(gl::ARRAY_BUFFER, 0);
 
             gl.EnableVertexAttribArray(pos_attrib as GLuint);
-            gl.EnableVertexAttribArray(color_attrib as GLuint);
             gl.EnableVertexAttribArray(texture_coord_attrib as GLuint);
         }
     }
@@ -209,13 +206,51 @@ impl Mesh {
 }
 
 #[rustfmt::skip]
-static VERTEX_DATA: [f32; 28] = [
-    // positions   // colors        // texture coords
-     0.5,  0.5,    1.0, 0.0, 0.0,   1.0, 1.0,   // top right
-     0.5, -0.5,    0.0, 1.0, 0.0,   1.0, 0.0,   // bottom right
-    -0.5, -0.5,    0.0, 0.0, 1.0,   0.0, 0.0,   // bottom let
-    -0.5,  0.5,    1.0, 1.0, 0.0,   0.0, 1.0    // top let 
-];
+static VERTEX_DATA: [f32; 180] = [
+    // Vertices                      // Texture Coords
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 0.0_f32,
+     0.5_f32, -0.5_f32, -0.5_f32,    1.0_f32, 0.0_f32,
+     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+    -0.5_f32,  0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 0.0_f32,
+
+    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+     0.5_f32, -0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 1.0_f32,
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 1.0_f32,
+    -0.5_f32,  0.5_f32,  0.5_f32,    0.0_f32, 1.0_f32,
+    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+
+    -0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+    -0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+    -0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+     0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+     0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+     0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+     0.5_f32, -0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+     0.5_f32, -0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+     0.5_f32, -0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+
+    -0.5_f32,  0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+    -0.5_f32,  0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+    -0.5_f32,  0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32
+
+    ];
 
 #[cfg(test)]
 mod test {
