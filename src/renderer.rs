@@ -42,7 +42,7 @@ impl Renderer {
             vec3(-1.3,  1.0, -1.5)  
         ];
 
-        let mesh_list = Vec::from(cube_positions.map(|pos| Mesh::new(gl.borrow(), &program, pos)));
+        let mesh_list = cube_positions.iter().enumerate().map(|(index, pos)| Mesh::new(gl.borrow(), &program, *pos, index % 3 == 0)).collect();
 
         Self {
             program,

@@ -8,7 +8,9 @@ use crate::{
         self,
         types::{GLfloat, GLuint},
         Gl,
-    }, helper::get_rand_angle, shader::{Shader, ShaderTrait}
+    },
+    helper::get_rand_angle,
+    shader::{Shader, ShaderTrait},
 };
 
 struct Transform {
@@ -25,10 +27,11 @@ pub struct Mesh {
     transform: RefCell<Transform>,
     texture_map: HashMap<String, GLuint>,
     pub texture_blend: RefCell<GLfloat>,
+    rotate: bool, // This is for exercise 3 of coordinate systems, remove later
 }
 
 impl Mesh {
-    pub fn new(gl: &Gl, program: &Shader, translation: Vec3) -> Self {
+    pub fn new(gl: &Gl, program: &Shader, translation: Vec3, no_rotate: bool) -> Self {
         let mut mesh = Mesh {
             program: program.clone(),
             vao: 0,
@@ -41,6 +44,7 @@ impl Mesh {
             }),
             texture_map: HashMap::new(),
             texture_blend: RefCell::new(0.2),
+            rotate: no_rotate,
         };
 
         unsafe {
@@ -108,10 +112,16 @@ impl Mesh {
         self.rotate_by(1.0);
         let transform = self.transform.borrow();
 
+        let rotation = if self.rotate {
+            Mat4::from_rotation_x((transform.rotation / 2.0).to_radians())
+                * Mat4::from_rotation_y(transform.rotation.to_radians())
+        } else {
+            Mat4::IDENTITY
+        };
+
         let model_matrix = Mat4::IDENTITY
             * Mat4::from_translation(transform.translation)
-            * Mat4::from_rotation_x((transform.rotation / 2.0).to_radians())
-            * Mat4::from_rotation_y(transform.rotation.to_radians())
+            * rotation
             * Mat4::from_scale(transform.scale);
 
         let view_matrix = Mat4::IDENTITY * Mat4::from_translation(Vec3::new(0.0, 0.0, -3.0));
@@ -119,7 +129,7 @@ impl Mesh {
         let projection_matrix =
             Mat4::perspective_rh_gl(80.0_f32.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
 
-        let output_matrix = Mat4::IDENTITY * projection_matrix * view_matrix * model_matrix; // * transformation_matrix;
+        let output_matrix = Mat4::IDENTITY * projection_matrix * view_matrix * model_matrix;
 
         self.program.set_mat4("transform", output_matrix).unwrap();
         unsafe {
@@ -202,7 +212,6 @@ impl Mesh {
         texture
     }
 }
-
 
 #[rustfmt::skip]
 static VERTEX_DATA: [f32; 180] = [
