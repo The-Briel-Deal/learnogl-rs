@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, os::raw::c_void, ptr::null};
+use std::{borrow::Borrow, cell::RefCell, collections::HashMap, os::raw::c_void, ptr::null};
 
 use glam::{vec3, Mat4, Vec3};
 use image::ImageReader;
@@ -6,7 +6,7 @@ use image::ImageReader;
 use crate::{
     gl::{
         self,
-        types::{GLfloat, GLuint},
+        types::{GLfloat, GLint, GLuint},
         Gl,
     },
     shader::{Shader, ShaderTrait},
@@ -95,26 +95,6 @@ impl Mesh {
     pub fn rotate_by(&self, degrees: GLfloat) {
         let mut transform = self.transform.borrow_mut();
         transform.rotation += degrees;
-
-        let model_matrix = Mat4::IDENTITY
-            * Mat4::from_rotation_x((transform.rotation / 2.0).to_radians())
-            * Mat4::from_rotation_y(transform.rotation.to_radians());
-
-        let view_matrix = Mat4::IDENTITY * Mat4::from_translation(Vec3::new(0.0, 0.0, -3.0));
-
-        let projection_matrix =
-            Mat4::perspective_rh_gl(45.0_f32.to_radians(), 800.0_f32 / 600.0_f32, 0.1, 100.0);
-
-        /* # Object Transformation
-         * let _transformation_matrix = Mat4::IDENTITY
-         *     * Mat4::from_translation(transform.translation)
-         *     * Mat4::from_rotation_z(transform.rotation.to_radians())
-         *     * Mat4::from_scale(transform.scale);
-         */
-
-        let output_matrix = Mat4::IDENTITY * projection_matrix * view_matrix * model_matrix; // * transformation_matrix;
-
-        self.program.set_mat4("transform", output_matrix).unwrap();
     }
 
     pub fn get_texture(&self, name: &str) -> GLuint {
@@ -127,6 +107,21 @@ impl Mesh {
 
     pub fn draw(&self, gl: &Gl) {
         self.rotate_by(1.0);
+        let transform = self.transform.borrow();
+
+        let model_matrix = Mat4::IDENTITY
+            * Mat4::from_translation(transform.translation)
+            * Mat4::from_rotation_x((transform.rotation / 2.0).to_radians())
+            * Mat4::from_rotation_y(transform.rotation.to_radians());
+
+        let view_matrix = Mat4::IDENTITY * Mat4::from_translation(Vec3::new(0.0, 0.0, -3.0));
+
+        let projection_matrix =
+            Mat4::perspective_rh_gl(45.0_f32.to_radians(), get_aspect_ratio(gl), 0.1, 100.0);
+
+        let output_matrix = Mat4::IDENTITY * projection_matrix * view_matrix * model_matrix; // * transformation_matrix;
+
+        self.program.set_mat4("transform", output_matrix).unwrap();
         unsafe {
             gl.BindVertexArray(self.get_vao());
             gl.DrawArrays(gl::TRIANGLES, 0, 36);
@@ -206,6 +201,18 @@ impl Mesh {
 
         texture
     }
+}
+
+fn get_aspect_ratio(gl: &Gl) -> f32 {
+    let mut data: [GLint; 4] = [0, 0, 0, 0];
+    let data_ptr = data.as_mut_ptr();
+    unsafe { gl.GetIntegerv(gl::VIEWPORT, data_ptr) };
+    let x = data[0];
+    let y = data[1];
+    let width = data[2];
+    let height = data[3];
+
+    (width - x) as f32 / (height - y) as f32
 }
 
 #[rustfmt::skip]

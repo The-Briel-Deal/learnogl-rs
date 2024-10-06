@@ -28,10 +28,21 @@ impl Renderer {
 
         let program = Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl");
 
-        let mesh_list = vec![
-            Mesh::new(gl.borrow(), &program, vec3(0.5, -0.5, 0.0)),
-            Mesh::new(gl.borrow(), &program, vec3(0.5, 0.5, 0.0)),
+        #[rustfmt::skip]
+        let cube_positions = [
+            vec3( 0.0,  0.0,  0.0), 
+            vec3( 2.0,  5.0, -15.0), 
+            vec3(-1.5, -2.2, -2.5),  
+            vec3(-3.8, -2.0, -12.3),  
+            vec3( 2.4, -0.4, -3.5),  
+            vec3(-1.7,  3.0, -7.5),  
+            vec3( 1.3, -2.0, -2.5),  
+            vec3( 1.5,  2.0, -2.5), 
+            vec3( 1.5,  0.2, -1.5), 
+            vec3(-1.3,  1.0, -1.5)  
         ];
+
+        let mesh_list = Vec::from(cube_positions.map(|pos| Mesh::new(gl.borrow(), &program, pos)));
 
         Self {
             program,
