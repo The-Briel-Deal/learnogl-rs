@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, cell::RefCell, collections::HashMap, os::raw::c_void};
+use std::{cell::RefCell, collections::HashMap, os::raw::c_void};
 
 use glam::{vec3, Mat4, Vec3};
 use image::ImageReader;
