@@ -39,7 +39,7 @@ impl Mesh {
             transform: RefCell::new(Transform {
                 rotation: get_rand_angle(),
                 translation,
-                scale: vec3(0.75, 0.75, 0.75),
+                scale: vec3(0.5, 0.75, 0.75),
             }),
             texture_map: HashMap::new(),
             texture_blend: RefCell::new(0.0),
@@ -113,7 +113,8 @@ impl Mesh {
         let model_matrix = Mat4::IDENTITY
             * Mat4::from_translation(transform.translation)
             * Mat4::from_rotation_x((transform.rotation / 2.0).to_radians())
-            * Mat4::from_rotation_y(transform.rotation.to_radians());
+            * Mat4::from_rotation_y(transform.rotation.to_radians())
+            * Mat4::from_scale(transform.scale);
 
         let view_matrix = Mat4::IDENTITY * Mat4::from_translation(Vec3::new(0.0, 0.0, -3.0));
 
