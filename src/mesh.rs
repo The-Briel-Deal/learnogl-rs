@@ -2,6 +2,7 @@ use std::{borrow::Borrow, cell::RefCell, collections::HashMap, os::raw::c_void, 
 
 use glam::{vec3, Mat4, Vec3};
 use image::ImageReader;
+use rand::random;
 
 use crate::{
     gl::{
@@ -36,7 +37,7 @@ impl Mesh {
             vbo: 0,
             ebo: 0,
             transform: RefCell::new(Transform {
-                rotation: 0.0,
+                rotation: get_rand_angle(),
                 translation,
                 scale: vec3(0.75, 0.75, 0.75),
             }),
@@ -213,6 +214,19 @@ fn get_aspect_ratio(gl: &Gl) -> f32 {
     let height = data[3];
 
     (width - x) as f32 / (height - y) as f32
+}
+
+/// Returns a random angle between 0.0 and 360.0
+/// ```
+/// # use learn_ogl_rs::mesh::get_rand_angle;
+/// for i in 0..1000 {
+///     let angle = get_rand_angle();
+///     assert!(angle <= 360.0);
+///     assert!(angle >= 0.0);
+/// }
+/// ```
+pub fn get_rand_angle() -> f32 {
+    random::<f32>() * 360.0_f32
 }
 
 #[rustfmt::skip]
