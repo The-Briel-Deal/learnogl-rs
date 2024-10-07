@@ -4,6 +4,7 @@ use glam::vec3;
 use glutin::prelude::GlDisplay;
 
 use crate::{
+    camera::Camera,
     gl::{self, types::GLfloat, Gl},
     logging::setup_logging,
     mesh::Mesh,
@@ -13,6 +14,7 @@ use crate::{
 pub struct Renderer {
     program: Shader,
     pub mesh_list: Vec<Mesh>,
+    camera: Rc<Camera>,
     gl: Rc<Gl>,
 }
 
@@ -28,25 +30,30 @@ impl Renderer {
 
         let program = Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl");
 
+        let camera = Rc::new(Camera::new());
+
         #[rustfmt::skip]
         let cube_positions = [
-            vec3( 0.0,  0.0,  0.0), 
-            vec3( 2.0,  5.0, -15.0), 
-            vec3(-1.5, -2.2, -2.5),  
-            vec3(-3.8, -2.0, -12.3),  
-            vec3( 2.4, -0.4, -3.5),  
-            vec3(-1.7,  3.0, -7.5),  
-            vec3( 1.3, -2.0, -2.5),  
-            vec3( 1.5,  2.0, -2.5), 
-            vec3( 1.5,  0.2, -1.5), 
-            vec3(-1.3,  1.0, -1.5)  
+            vec3( 0.0,  0.0,  0.0),
+            vec3( 2.0,  5.0, -15.0),
+            vec3(-1.5, -2.2, -2.5),
+            vec3(-3.8, -2.0, -12.3),
+            vec3( 2.4, -0.4, -3.5),
+            vec3(-1.7,  3.0, -7.5),
+            vec3( 1.3, -2.0, -2.5),
+            vec3( 1.5,  2.0, -2.5),
+            vec3( 1.5,  0.2, -1.5),
+            vec3(-1.3,  1.0, -1.5)
         ];
 
-        let mesh_list = Vec::from(cube_positions.map(|pos| Mesh::new(gl.borrow(), &program, pos)));
+        let mesh_list = Vec::from(
+            cube_positions.map(|pos| Mesh::new(gl.borrow(), camera.clone(), &program, pos)),
+        );
 
         Self {
             program,
             mesh_list,
+            camera,
             gl,
         }
     }
@@ -63,6 +70,8 @@ impl Renderer {
         alpha: GLfloat,
     ) {
         unsafe {
+            self.camera.rotate();
+
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
             self.program.enable();

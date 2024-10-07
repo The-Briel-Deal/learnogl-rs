@@ -1,14 +1,17 @@
-use std::{cell::RefCell, collections::HashMap, os::raw::c_void};
+use std::{cell::RefCell, collections::HashMap, os::raw::c_void, rc::Rc};
 
 use glam::{vec3, Mat4, Vec3};
 use image::ImageReader;
 
 use crate::{
+    camera::Camera,
     gl::{
         self,
         types::{GLfloat, GLuint},
         Gl,
-    }, helper::get_rand_angle, shader::{Shader, ShaderTrait}
+    },
+    helper::get_rand_angle,
+    shader::{Shader, ShaderTrait},
 };
 
 struct Transform {
@@ -24,11 +27,12 @@ pub struct Mesh {
     ebo: GLuint,
     transform: RefCell<Transform>,
     texture_map: HashMap<String, GLuint>,
+    camera: Rc<Camera>,
     pub texture_blend: RefCell<GLfloat>,
 }
 
 impl Mesh {
-    pub fn new(gl: &Gl, program: &Shader, translation: Vec3) -> Self {
+    pub fn new(gl: &Gl, camera: Rc<Camera>, program: &Shader, translation: Vec3) -> Self {
         let mut mesh = Mesh {
             program: program.clone(),
             vao: 0,
@@ -40,6 +44,7 @@ impl Mesh {
                 scale: vec3(1.0, 1.0, 1.0),
             }),
             texture_map: HashMap::new(),
+            camera,
             texture_blend: RefCell::new(0.2),
         };
 
@@ -114,7 +119,7 @@ impl Mesh {
             * Mat4::from_rotation_y(transform.rotation.to_radians())
             * Mat4::from_scale(transform.scale);
 
-        let view_matrix = Mat4::IDENTITY * Mat4::from_translation(Vec3::new(0.0, 0.0, -3.0));
+        let view_matrix = Mat4::IDENTITY * self.camera.look_at_target();
 
         let projection_matrix =
             Mat4::perspective_rh_gl(80.0_f32.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
@@ -202,7 +207,6 @@ impl Mesh {
         texture
     }
 }
-
 
 #[rustfmt::skip]
 static VERTEX_DATA: [f32; 180] = [
