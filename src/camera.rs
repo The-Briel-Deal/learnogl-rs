@@ -141,7 +141,6 @@ impl Camera {
         self.dir.set_yaw(yaw);
     }
     pub fn adjust_yaw(&self, yaw: Degrees) {
-        dbg!(self.dir.euler());
         self.dir.adjust_yaw(yaw);
     }
 }

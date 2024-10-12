@@ -18,7 +18,7 @@ use winit::{
     application::ApplicationHandler,
     event::{ElementState, WindowEvent},
     keyboard::{KeyCode, PhysicalKey},
-    window::Window,
+    window::{CursorGrabMode, Window},
 };
 
 use crate::{gl::create_gl_context, renderer::Renderer, timer::Timer};
@@ -100,6 +100,7 @@ impl ApplicationHandler for App {
                 }
             }
         };
+        window.set_cursor_grab(CursorGrabMode::Locked).unwrap();
 
         let attrs = window
             .build_surface_attributes(Default::default())
@@ -203,7 +204,7 @@ impl ApplicationHandler for App {
                 }
             },
             WindowEvent::CursorMoved {
-                device_id,
+                device_id: _,
                 position,
             } => {
                 let camera = &self.renderer.as_ref().unwrap().camera;
@@ -212,6 +213,12 @@ impl ApplicationHandler for App {
                     camera.adjust_pitch((position.y - pos.1) as f32 / 100.0)
                 }
                 self.last_cursor_position = Some((position.x, position.y));
+            }
+            WindowEvent::Focused(is_focused) => {
+                // Prevent's jumpiness when refocusing window.
+                if !is_focused {
+                    self.last_cursor_position = None
+                }
             }
             _ => (),
         }

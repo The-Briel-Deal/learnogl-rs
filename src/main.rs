@@ -2,7 +2,7 @@ use glutin::config::ConfigTemplateBuilder;
 use glutin_winit::DisplayBuilder;
 use winit::{
     event_loop::{ControlFlow, EventLoop},
-    window::Window,
+    window::{Cursor, Window},
 };
 
 use learn_ogl_rs::state::App;
