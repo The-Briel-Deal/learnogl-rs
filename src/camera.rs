@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    ops::{Deref, Mul},
+    ops::Mul,
 };
 
 use glam::{vec3, Mat4, Vec3};
@@ -77,7 +77,7 @@ impl Default for Direction {
 pub struct Camera {
     pos: RefCell<Vec3>,
     dir: Direction,
-    right: Vec3,
+    _right: Vec3,
     up: Vec3,
 
     front: Vec3,
@@ -162,7 +162,7 @@ impl Default for Camera {
         Camera {
             pos: RefCell::new(camera_pos),
             dir: camera_dir,
-            right: camera_right,
+            _right: camera_right,
             up: camera_up,
 
             front: vec3(0.0, 0.0, -1.0),

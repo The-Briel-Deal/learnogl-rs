@@ -9,7 +9,6 @@ use crate::{
     logging::setup_logging,
     mesh::Mesh,
     shader::{Shader, ShaderTrait},
-    timer::Timer,
 };
 
 pub struct Renderer {
