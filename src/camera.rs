@@ -1,8 +1,4 @@
-use std::{
-    borrow::{Borrow, BorrowMut},
-    cell::RefCell,
-    ops::Mul,
-};
+use std::{ cell::RefCell, ops::Mul};
 
 use glam::{vec3, Mat4, Vec3};
 
@@ -10,13 +6,13 @@ const WORLD_ORIGIN: Vec3 = vec3(0.0, 0.0, 0.0);
 
 pub struct Camera {
     pos: RefCell<Vec3>,
-    dir: Vec3,
-    right: Vec3,
+    _dir: Vec3,
+    _right: Vec3,
     up: Vec3,
 
     front: Vec3,
 
-    target: Vec3,
+    _target: Vec3,
 
     rotation: RefCell<f32>,
 }
@@ -71,13 +67,13 @@ impl Default for Camera {
         let camera_up = camera_dir.cross(camera_right);
         Camera {
             pos: RefCell::new(camera_pos),
-            dir: camera_dir,
-            right: camera_right,
+            _dir: camera_dir,
+            _right: camera_right,
             up: camera_up,
 
             front: vec3(0.0, 0.0, -1.0),
 
-            target: camera_target,
+            _target: camera_target,
 
             rotation: RefCell::new(0.0),
         }
