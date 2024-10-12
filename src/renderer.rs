@@ -58,7 +58,7 @@ impl Renderer {
         }
     }
 
-    pub fn draw(&self, delta_time: f32) {
+    pub fn draw(&self, _delta_time: f32) {
         self.draw_with_clear_color(0.1, 0.1, 0.1, 0.9);
     }
 
