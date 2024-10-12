@@ -34,7 +34,6 @@ pub struct App {
     timer: Timer,
     renderer: Option<Renderer>,
     keys_down: HashSet<PhysicalKey>,
-    last_cursor_position: Option<(f64, f64)>,
 }
 
 impl App {
@@ -48,7 +47,6 @@ impl App {
             timer: Timer::new(),
             renderer: None,
             keys_down: HashSet::new(),
-            last_cursor_position: None,
         }
     }
 }
@@ -203,24 +201,19 @@ impl ApplicationHandler for App {
                     self.keys_down.remove(&event.physical_key);
                 }
             },
-            WindowEvent::CursorMoved {
-                device_id: _,
-                position,
-            } => {
-                let camera = &self.renderer.as_ref().unwrap().camera;
-                if let Some(pos) = self.last_cursor_position {
-                    camera.adjust_yaw((position.x - pos.0) as f32 / 100.0);
-                    camera.adjust_pitch((position.y - pos.1) as f32 / 100.0)
-                }
-                self.last_cursor_position = Some((position.x, position.y));
-            }
-            WindowEvent::Focused(is_focused) => {
-                // Prevent's jumpiness when refocusing window.
-                if !is_focused {
-                    self.last_cursor_position = None
-                }
-            }
             _ => (),
+        }
+    }
+    fn device_event(
+        &mut self,
+        _event_loop: &winit::event_loop::ActiveEventLoop,
+        _device_id: winit::event::DeviceId,
+        event: winit::event::DeviceEvent,
+    ) {
+        if let winit::event::DeviceEvent::MouseMotion { delta } = event {
+            let camera = &self.renderer.as_ref().unwrap().camera;
+            camera.adjust_yaw(delta.0 as f32 / 10.0);
+            camera.adjust_pitch(-(delta.1 as f32 / 10.0));
         }
     }
 }

@@ -109,19 +109,19 @@ impl Camera {
     }
     pub fn move_right(&self, distance: f32) {
         let mut pos = self.pos.borrow_mut();
-        *pos -= self.front.cross(self.up).normalize().mul(distance);
+        *pos -= self.dir.euler().cross(self.up).normalize().mul(distance);
     }
     pub fn move_left(&self, distance: f32) {
         let mut pos = self.pos.borrow_mut();
-        *pos += self.front.cross(self.up).normalize().mul(distance);
+        *pos += self.dir.euler().cross(self.up).normalize().mul(distance);
     }
     pub fn move_forward(&self, distance: f32) {
         let mut pos = self.pos.borrow_mut();
-        *pos += self.front * distance;
+        *pos += self.dir.euler() * distance;
     }
     pub fn move_backward(&self, distance: f32) {
         let mut pos = self.pos.borrow_mut();
-        *pos -= self.front * distance;
+        *pos -= self.dir.euler() * distance;
     }
 
     pub fn pitch(&self) -> Degrees {
