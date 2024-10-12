@@ -34,6 +34,7 @@ pub struct App {
     timer: Timer,
     renderer: Option<Renderer>,
     keys_down: HashSet<PhysicalKey>,
+    last_cursor_position: Option<(f64, f64)>,
 }
 
 impl App {
@@ -47,6 +48,7 @@ impl App {
             timer: Timer::new(),
             renderer: None,
             keys_down: HashSet::new(),
+            last_cursor_position: None,
         }
     }
 }
@@ -200,6 +202,17 @@ impl ApplicationHandler for App {
                     self.keys_down.remove(&event.physical_key);
                 }
             },
+            WindowEvent::CursorMoved {
+                device_id,
+                position,
+            } => {
+                let camera = &self.renderer.as_ref().unwrap().camera;
+                if let Some(pos) = self.last_cursor_position {
+                    camera.adjust_yaw((position.x - pos.0) as f32 / 100.0);
+                    camera.adjust_pitch((position.y - pos.1) as f32 / 100.0)
+                }
+                self.last_cursor_position = Some((position.x, position.y));
+            }
             _ => (),
         }
     }

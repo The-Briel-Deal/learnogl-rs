@@ -59,7 +59,6 @@ impl Renderer {
     }
 
     pub fn draw(&self, delta_time: f32) {
-        self.camera.adjust_yaw(100.0 * delta_time);
         self.draw_with_clear_color(0.1, 0.1, 0.1, 0.9);
     }
 

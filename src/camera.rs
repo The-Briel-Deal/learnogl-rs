@@ -63,7 +63,7 @@ impl Default for Direction {
     fn default() -> Self {
         Self {
             inner_direction: RefCell::new(InnerDirection {
-                yaw: 0.0,
+                yaw: -90.0,
                 pitch: 0.0,
                 euler_dir: vec3(0.0, 0.0, -1.0),
             }),
@@ -141,6 +141,7 @@ impl Camera {
         self.dir.set_yaw(yaw);
     }
     pub fn adjust_yaw(&self, yaw: Degrees) {
+        dbg!(self.dir.euler());
         self.dir.adjust_yaw(yaw);
     }
 }
