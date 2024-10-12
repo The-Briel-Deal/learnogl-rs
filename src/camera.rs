@@ -1,4 +1,4 @@
-use std::{ cell::RefCell, ops::Mul};
+use std::{cell::RefCell, ops::Mul};
 
 use glam::{vec3, Mat4, Vec3};
 
