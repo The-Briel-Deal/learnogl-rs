@@ -1,5 +1,10 @@
 use core::panic;
-use std::{num::NonZeroU32, rc::Rc};
+use std::{
+    collections::HashSet,
+    num::NonZeroU32,
+    ops::{AddAssign, SubAssign},
+    rc::Rc,
+};
 
 use glutin::{
     config::{Config, ConfigTemplateBuilder, GetGlConfig, GlConfig},
@@ -10,10 +15,15 @@ use glutin::{
 };
 use glutin_winit::{DisplayBuilder, GlWindow};
 use winit::{
-    application::ApplicationHandler, event::WindowEvent, keyboard::PhysicalKey, window::Window,
+    application::ApplicationHandler,
+    event::{ElementState, WindowEvent},
+    keyboard::{KeyCode, PhysicalKey},
+    window::Window,
 };
 
-use crate::{gl::create_gl_context, renderer::Renderer};
+use crate::{gl::create_gl_context, renderer::Renderer, timer::Timer};
+
+const SPEED: f32 = 2.0;
 
 pub struct App {
     window: Option<Rc<Window>>,
@@ -21,7 +31,9 @@ pub struct App {
     template: ConfigTemplateBuilder,
     gl_display: GlDisplayCreationState,
     gl_context: Option<PossiblyCurrentContext>,
+    timer: Timer,
     renderer: Option<Renderer>,
+    keys_down: HashSet<PhysicalKey>,
 }
 
 impl App {
@@ -32,7 +44,9 @@ impl App {
             window: None,
             surface: None,
             gl_context: None,
+            timer: Timer::new(),
             renderer: None,
+            keys_down: HashSet::new(),
         }
     }
 }
@@ -128,10 +142,37 @@ impl ApplicationHandler for App {
                 let gl_surface = self.surface.as_ref().unwrap();
                 let gl_context = self.gl_context.as_ref().unwrap();
                 let renderer = self.renderer.as_ref().unwrap();
+                let meshes = &renderer.mesh_list;
+                let camera = &self.renderer.as_ref().unwrap().camera;
+
+                for key in &self.keys_down {
+                    match key {
+                        PhysicalKey::Code(KeyCode::KeyJ) => meshes
+                            .iter()
+                            .for_each(|mesh| mesh.texture_blend.borrow_mut().sub_assign(0.01)),
+                        PhysicalKey::Code(KeyCode::KeyK) => meshes
+                            .iter()
+                            .for_each(|mesh| mesh.texture_blend.borrow_mut().add_assign(0.01)),
+                        PhysicalKey::Code(KeyCode::KeyW) => {
+                            camera.move_forward(SPEED * self.timer.delta_time())
+                        }
+                        PhysicalKey::Code(KeyCode::KeyA) => {
+                            camera.move_right(SPEED * self.timer.delta_time())
+                        }
+                        PhysicalKey::Code(KeyCode::KeyS) => {
+                            camera.move_backward(SPEED * self.timer.delta_time())
+                        }
+                        PhysicalKey::Code(KeyCode::KeyD) => {
+                            camera.move_left(SPEED * self.timer.delta_time())
+                        }
+                        _ => (),
+                    }
+                }
                 renderer.draw();
                 window.request_redraw();
 
                 gl_surface.swap_buffers(gl_context).unwrap();
+                self.timer.reset();
             }
             WindowEvent::Resized(size) => {
                 if let Some(gl_surface) = &self.surface {
@@ -151,16 +192,14 @@ impl ApplicationHandler for App {
                 device_id: _,
                 event,
                 is_synthetic: _,
-            } => {
-                for mesh in &self.renderer.as_ref().unwrap().mesh_list {
-                    if event.physical_key == PhysicalKey::Code(winit::keyboard::KeyCode::KeyJ) {
-                        *mesh.texture_blend.borrow_mut() -= 0.01;
-                    }
-                    if event.physical_key == PhysicalKey::Code(winit::keyboard::KeyCode::KeyK) {
-                        *mesh.texture_blend.borrow_mut() += 0.01;
-                    }
+            } => match event.state {
+                ElementState::Pressed => {
+                    self.keys_down.insert(event.physical_key);
                 }
-            }
+                ElementState::Released => {
+                    self.keys_down.remove(&event.physical_key);
+                }
+            },
             _ => (),
         }
     }

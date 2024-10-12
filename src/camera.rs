@@ -1,4 +1,8 @@
-use std::{borrow::BorrowMut, cell::RefCell, ops::Mul};
+use std::{
+    borrow::{Borrow, BorrowMut},
+    cell::RefCell,
+    ops::Mul,
+};
 
 use glam::{vec3, Mat4, Vec3};
 
@@ -9,6 +13,8 @@ pub struct Camera {
     dir: Vec3,
     right: Vec3,
     up: Vec3,
+
+    front: Vec3,
 
     target: Vec3,
 
@@ -32,7 +38,23 @@ impl Camera {
     }
 
     pub fn look_at_target(&self) -> Mat4 {
-        Mat4::look_at_rh(*self.pos.borrow(), self.target, self.up)
+        Mat4::look_at_rh(*self.pos.borrow(), *self.pos.borrow() + self.front, self.up)
+    }
+    pub fn move_right(&self, distance: f32) {
+        let mut pos = self.pos.borrow_mut();
+        *pos -= self.front.cross(self.up).normalize().mul(distance);
+    }
+    pub fn move_left(&self, distance: f32) {
+        let mut pos = self.pos.borrow_mut();
+        *pos += self.front.cross(self.up).normalize().mul(distance);
+    }
+    pub fn move_forward(&self, distance: f32) {
+        let mut pos = self.pos.borrow_mut();
+        *pos += self.front * distance;
+    }
+    pub fn move_backward(&self, distance: f32) {
+        let mut pos = self.pos.borrow_mut();
+        *pos -= self.front * distance;
     }
 }
 
@@ -52,6 +74,8 @@ impl Default for Camera {
             dir: camera_dir,
             right: camera_right,
             up: camera_up,
+
+            front: vec3(0.0, 0.0, -1.0),
 
             target: camera_target,
 

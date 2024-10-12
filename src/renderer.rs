@@ -14,7 +14,7 @@ use crate::{
 pub struct Renderer {
     program: Shader,
     pub mesh_list: Vec<Mesh>,
-    camera: Rc<Camera>,
+    pub camera: Rc<Camera>,
     gl: Rc<Gl>,
 }
 
@@ -70,8 +70,6 @@ impl Renderer {
         alpha: GLfloat,
     ) {
         unsafe {
-            self.camera.rotate();
-
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
             self.program.enable();

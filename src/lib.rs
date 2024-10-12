@@ -6,3 +6,4 @@ pub mod renderer;
 pub mod shader;
 pub mod state;
 pub mod camera;
+pub mod timer;
