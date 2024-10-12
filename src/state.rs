@@ -168,7 +168,7 @@ impl ApplicationHandler for App {
                         _ => (),
                     }
                 }
-                renderer.draw();
+                renderer.draw(self.timer.delta_time());
                 window.request_redraw();
 
                 gl_surface.swap_buffers(gl_context).unwrap();

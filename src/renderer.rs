@@ -9,6 +9,7 @@ use crate::{
     logging::setup_logging,
     mesh::Mesh,
     shader::{Shader, ShaderTrait},
+    timer::Timer,
 };
 
 pub struct Renderer {
@@ -58,8 +59,9 @@ impl Renderer {
         }
     }
 
-    pub fn draw(&self) {
-        self.draw_with_clear_color(0.1, 0.1, 0.1, 0.9)
+    pub fn draw(&self, delta_time: f32) {
+        self.camera.adjust_yaw(100.0 * delta_time);
+        self.draw_with_clear_color(0.1, 0.1, 0.1, 0.9);
     }
 
     pub fn draw_with_clear_color(
