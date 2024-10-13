@@ -1,5 +1,5 @@
 use core::panic;
-use std::{collections::HashSet, num::NonZeroU32, rc::Rc};
+use std::{collections::HashSet, num::NonZeroU32};
 
 use glutin::{
     config::{Config, ConfigTemplateBuilder, GetGlConfig, GlConfig},
