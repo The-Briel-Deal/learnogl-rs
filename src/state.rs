@@ -20,7 +20,7 @@ use winit::{
 use crate::{gl::create_gl_context, renderer::Renderer, timer::Timer};
 
 pub struct App {
-    window: Option<Rc<Window>>,
+    window: Option<Window>,
     surface: Option<Surface<WindowSurface>>,
     template: ConfigTemplateBuilder,
     gl_display: GlDisplayCreationState,
@@ -118,7 +118,7 @@ impl ApplicationHandler for App {
             eprintln!("Error setting vsync: {res:?}");
         }
         self.surface = Some(gl_surface);
-        self.window = Some(Rc::new(window));
+        self.window = Some(window);
     }
 
     fn window_event(
@@ -199,7 +199,7 @@ impl ApplicationHandler for App {
         event: winit::event::DeviceEvent,
     ) {
         if let (winit::event::DeviceEvent::MouseMotion { delta }, Some(renderer)) =
-            (event, self.renderer.as_ref())
+            (event, self.renderer.as_mut())
         {
             renderer.handle_mouse_input(delta)
         }
@@ -233,7 +233,7 @@ fn group_keys(keys_down: &HashSet<PhysicalKey>) -> GroupedKeys {
 }
 
 enum GlDisplayCreationState {
-    /// The display was not build yet.
+    /// The display was not built yet.
     Builder(DisplayBuilder),
     /// The display was already created for the application.
     Init,

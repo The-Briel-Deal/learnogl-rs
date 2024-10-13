@@ -87,7 +87,7 @@ impl Renderer {
         })
     }
 
-    pub fn handle_mouse_input(&self, delta: PositionDelta2D) {
+    pub fn handle_mouse_input(&mut self, delta: PositionDelta2D) {
         self.camera.adjust_yaw(delta.0 as f32 / 10.0);
         self.camera.adjust_pitch(-(delta.1 as f32 / 10.0));
     }

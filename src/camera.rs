@@ -56,20 +56,20 @@ impl Camera {
     pub fn pitch(&self) -> Degrees {
         self.dir.pitch()
     }
-    pub fn set_pitch(&self, pitch: Degrees) {
+    pub fn set_pitch(&mut self, pitch: Degrees) {
         self.dir.set_pitch(pitch);
     }
-    pub fn adjust_pitch(&self, pitch: Degrees) {
+    pub fn adjust_pitch(&mut self, pitch: Degrees) {
         self.dir.adjust_pitch(pitch);
     }
 
     pub fn yaw(&self) -> Degrees {
         self.dir.yaw()
     }
-    pub fn set_yaw(&self, yaw: Degrees) {
+    pub fn set_yaw(&mut self, yaw: Degrees) {
         self.dir.set_yaw(yaw);
     }
-    pub fn adjust_yaw(&self, yaw: Degrees) {
+    pub fn adjust_yaw(&mut self, yaw: Degrees) {
         self.dir.adjust_yaw(yaw);
     }
 }
