@@ -183,7 +183,7 @@ impl ApplicationHandler for App {
                 delta,
                 device_id: _,
                 phase: _,
-            } => match dbg!(delta) {
+            } => match delta {
                 winit::event::MouseScrollDelta::LineDelta(_x, y) => {
                     self.renderer.as_mut().unwrap().adjust_zoom(-y);
                 }
