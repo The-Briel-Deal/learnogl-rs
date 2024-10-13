@@ -27,13 +27,12 @@ pub struct Mesh {
     ebo: GLuint,
     transform: RefCell<Transform>,
     texture_map: HashMap<String, GLuint>,
-    camera: Rc<Camera>,
     fov: f32,
     pub texture_blend: RefCell<GLfloat>,
 }
 
 impl Mesh {
-    pub fn new(gl: &Gl, camera: Rc<Camera>, program: &Shader, translation: Vec3) -> Self {
+    pub fn new(gl: &Gl, program: &Shader, translation: Vec3) -> Self {
         let mut mesh = Mesh {
             program: program.clone(),
             vao: 0,
@@ -45,7 +44,6 @@ impl Mesh {
                 scale: vec3(1.0, 1.0, 1.0),
             }),
             texture_map: HashMap::new(),
-            camera,
             fov: 80.0,
             texture_blend: RefCell::new(0.2),
         };
@@ -115,7 +113,7 @@ impl Mesh {
         self.vao
     }
 
-    pub fn draw(&self, gl: &Gl) {
+    pub fn draw(&self, gl: &Gl, view_matrix: Mat4) {
         self.rotate_by(1.0);
         let transform = self.transform.borrow();
 
@@ -125,7 +123,6 @@ impl Mesh {
             * Mat4::from_rotation_y(transform.rotation.to_radians())
             * Mat4::from_scale(transform.scale);
 
-        let view_matrix = Mat4::IDENTITY * self.camera.look_at_target();
 
         let projection_matrix =
             Mat4::perspective_rh_gl(self.fov.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);

@@ -14,7 +14,7 @@ use crate::{
 pub struct Renderer {
     program: Shader,
     pub mesh_list: Vec<Mesh>,
-    pub camera: Rc<Camera>,
+    pub camera: Camera,
     gl: Rc<Gl>,
 }
 
@@ -30,8 +30,6 @@ impl Renderer {
 
         let program = Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl");
 
-        let camera = Rc::new(Camera::new());
-
         #[rustfmt::skip]
         let cube_positions = [
             vec3( 0.0,  0.0,  0.0),
@@ -46,15 +44,13 @@ impl Renderer {
             vec3(-1.3,  1.0, -1.5)
         ];
 
-        let mesh_list = Vec::from(
-            cube_positions.map(|pos| Mesh::new(gl.borrow(), camera.clone(), &program, pos)),
-        );
+        let mesh_list = Vec::from(cube_positions.map(|pos| Mesh::new(gl.borrow(), &program, pos)));
 
         Self {
             program,
             mesh_list,
-            camera,
             gl,
+            camera: Camera::new(),
         }
     }
 
@@ -83,7 +79,7 @@ impl Renderer {
                 self.gl.ActiveTexture(gl::TEXTURE1);
                 self.gl
                     .BindTexture(gl::TEXTURE_2D, mesh.get_texture("texture2"));
-                mesh.draw(&self.gl)
+                mesh.draw(&self.gl, self.camera.view_matrix())
             }
         }
     }

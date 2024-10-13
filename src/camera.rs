@@ -18,7 +18,7 @@ impl Camera {
         Camera::default()
     }
 
-    pub fn look_at_target(&self) -> Mat4 {
+    pub fn view_matrix(&self) -> Mat4 {
         Mat4::look_at_rh(
             *self.pos.borrow(),
             *self.pos.borrow() + self.dir.euler(),
