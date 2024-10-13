@@ -180,13 +180,13 @@ impl ApplicationHandler for App {
             },
             WindowEvent::MouseWheel {
                 delta,
-                device_id,
-                phase,
+                device_id: _,
+                phase: _,
             } => match dbg!(delta) {
-                winit::event::MouseScrollDelta::LineDelta(x, y) => {
+                winit::event::MouseScrollDelta::LineDelta(_x, y) => {
                     self.renderer.as_mut().unwrap().adjust_zoom(-y);
                 }
-                winit::event::MouseScrollDelta::PixelDelta(PhysicalPosition { x, y }) => {
+                winit::event::MouseScrollDelta::PixelDelta(PhysicalPosition { x: _, y }) => {
                     self.renderer.as_mut().unwrap().adjust_zoom(-y as f32);
                 }
             },
