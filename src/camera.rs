@@ -1,9 +1,8 @@
-use std::{cell::RefCell, ops::Mul};
+use std::cell::RefCell;
 
 use glam::{vec3, Mat4, Vec3};
 use winit::keyboard::KeyCode;
 
-const WORLD_ORIGIN: Vec3 = vec3(0.0, 0.0, 0.0);
 const SPEED: f32 = 2.0;
 
 type Degrees = f32;
