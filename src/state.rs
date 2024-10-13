@@ -22,7 +22,7 @@ use winit::{
     window::{CursorGrabMode, Window},
 };
 
-use crate::{camera::Camera, gl::create_gl_context, mesh::Mesh, renderer::Renderer, timer::Timer};
+use crate::{gl::create_gl_context, mesh::Mesh, renderer::Renderer, timer::Timer};
 
 pub struct App {
     window: Option<Rc<Window>>,
@@ -200,15 +200,14 @@ impl ApplicationHandler for App {
         _device_id: winit::event::DeviceId,
         event: winit::event::DeviceEvent,
     ) {
-        if let winit::event::DeviceEvent::MouseMotion { delta } = event {
-            let camera = &self.renderer.as_ref().unwrap().camera;
-            camera.adjust_yaw(delta.0 as f32 / 10.0);
-            camera.adjust_pitch(-(delta.1 as f32 / 10.0));
+        if let (winit::event::DeviceEvent::MouseMotion { delta }, Some(renderer)) =
+            (event, self.renderer.as_ref())
+        {
+            renderer.handle_mouse_input(delta)
         }
     }
 }
 
-type Seconds = f32;
 struct GroupedKeys {
     movement_keys: Vec<KeyCode>,
 }

@@ -12,10 +12,12 @@ use crate::{
     shader::{Shader, ShaderTrait},
 };
 
+type PositionDelta2D = (f64, f64);
+
 pub struct Renderer {
     program: Shader,
     pub mesh_list: Vec<Mesh>,
-    pub camera: Camera,
+    camera: Camera,
     gl: Rc<Gl>,
 }
 
@@ -57,6 +59,11 @@ impl Renderer {
 
     pub fn handle_movement_keys(&self, keys: Vec<KeyCode>, delta_time: f32) {
         self.camera.handle_movement(keys, delta_time);
+    }
+
+    pub fn handle_mouse_input(&self, delta: PositionDelta2D) {
+        self.camera.adjust_yaw(delta.0 as f32 / 10.0);
+        self.camera.adjust_pitch(-(delta.1 as f32 / 10.0));
     }
 
     pub fn draw(&self, _delta_time: f32) {
