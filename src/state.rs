@@ -1,10 +1,5 @@
 use core::panic;
-use std::{
-    collections::HashSet,
-    num::NonZeroU32,
-    ops::{AddAssign, SubAssign},
-    rc::Rc,
-};
+use std::{collections::HashSet, num::NonZeroU32, rc::Rc};
 
 use glutin::{
     config::{Config, ConfigTemplateBuilder, GetGlConfig, GlConfig},
@@ -22,7 +17,7 @@ use winit::{
     window::{CursorGrabMode, Window},
 };
 
-use crate::{gl::create_gl_context, mesh::Mesh, renderer::Renderer, timer::Timer};
+use crate::{gl::create_gl_context, renderer::Renderer, timer::Timer};
 
 pub struct App {
     window: Option<Rc<Window>>,
