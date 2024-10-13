@@ -10,19 +10,18 @@ use crate::{
 pub trait ShaderTrait {
     fn get_id(&self) -> GLuint;
 
-    fn enable(&self);
+    fn enable(&self, gl: &Gl);
 
-    fn set_bool(&self, name: &str, val: bool) -> Result<(), String>;
-    fn set_int(&self, name: &str, val: i32) -> Result<(), String>;
-    fn set_float(&self, name: &str, val: f32) -> Result<(), String>;
-    fn set_vec2(&self, name: &str, val: (f32, f32)) -> Result<(), String>;
-    fn set_mat4(&self, name: &str, val: Mat4) -> Result<(), String>;
+    fn set_bool(&self, gl: &Gl, name: &str, val: bool) -> Result<(), String>;
+    fn set_int(&self, gl: &Gl, name: &str, val: i32) -> Result<(), String>;
+    fn set_float(&self, gl: &Gl, name: &str, val: f32) -> Result<(), String>;
+    fn set_vec2(&self, gl: &Gl, name: &str, val: (f32, f32)) -> Result<(), String>;
+    fn set_mat4(&self, gl: &Gl, name: &str, val: Mat4) -> Result<(), String>;
 }
 
 #[derive(Clone)]
 pub struct Shader {
     program_id: GLuint,
-    gl: Rc<Gl>,
 }
 
 impl ShaderTrait for Shader {
@@ -30,18 +29,18 @@ impl ShaderTrait for Shader {
         self.program_id
     }
 
-    fn enable(&self) {
+    fn enable(&self, gl: &Gl) {
         unsafe {
-            self.gl.UseProgram(self.program_id);
+            gl.UseProgram(self.program_id);
         }
     }
 
-    fn set_bool(&self, name: &str, val: bool) -> Result<(), String> {
-        match self.get_uniform_id(name) {
+    fn set_bool(&self, gl: &Gl, name: &str, val: bool) -> Result<(), String> {
+        match self.get_uniform_id(gl, name) {
             Ok(id) => {
-                self.enable();
+                self.enable(gl);
                 unsafe {
-                    self.gl.Uniform1i(id, val.into());
+                    gl.Uniform1i(id, val.into());
                 }
                 Ok(())
             }
@@ -49,14 +48,14 @@ impl ShaderTrait for Shader {
         }
     }
 
-    fn set_int(&self, name: &str, val: i32) -> Result<(), String> {
-        match self.get_uniform_id(name) {
+    fn set_int(&self, gl: &Gl, name: &str, val: i32) -> Result<(), String> {
+        match self.get_uniform_id(gl, name) {
             Ok(id) => {
                 dbg!(name, id, val);
-                self.enable();
+                self.enable(gl);
 
                 unsafe {
-                    self.gl.Uniform1i(id, val);
+                    gl.Uniform1i(id, val);
                 }
                 Ok(())
             }
@@ -64,12 +63,12 @@ impl ShaderTrait for Shader {
         }
     }
 
-    fn set_float(&self, name: &str, val: f32) -> Result<(), String> {
-        match self.get_uniform_id(name) {
+    fn set_float(&self, gl: &Gl, name: &str, val: f32) -> Result<(), String> {
+        match self.get_uniform_id(gl, name) {
             Ok(id) => {
-                self.enable();
+                self.enable(gl);
                 unsafe {
-                    self.gl.Uniform1f(id, val);
+                    gl.Uniform1f(id, val);
                 }
                 Ok(())
             }
@@ -77,25 +76,24 @@ impl ShaderTrait for Shader {
         }
     }
 
-    fn set_vec2(&self, name: &str, val: (f32, f32)) -> Result<(), String> {
-        match self.get_uniform_id(name) {
+    fn set_vec2(&self, gl: &Gl, name: &str, val: (f32, f32)) -> Result<(), String> {
+        match self.get_uniform_id(gl, name) {
             Ok(id) => {
-                self.enable();
+                self.enable(gl);
                 unsafe {
-                    self.gl.Uniform2f(id, val.0, val.1);
+                    gl.Uniform2f(id, val.0, val.1);
                 }
                 Ok(())
             }
             Err(err) => Err(err),
         }
     }
-    fn set_mat4(&self, name: &str, val: Mat4) -> Result<(), String> {
-        match self.get_uniform_id(name) {
+    fn set_mat4(&self, gl: &Gl, name: &str, val: Mat4) -> Result<(), String> {
+        match self.get_uniform_id(gl, name) {
             Ok(id) => {
-                self.enable();
+                self.enable(gl);
                 unsafe {
-                    self.gl
-                        .UniformMatrix4fv(id, 1, gl::FALSE, val.as_ref().as_ptr());
+                    gl.UniformMatrix4fv(id, 1, gl::FALSE, val.as_ref().as_ptr());
                 }
                 Ok(())
             }
@@ -105,7 +103,7 @@ impl ShaderTrait for Shader {
 }
 
 impl Shader {
-    pub fn new(gl: Rc<Gl>, vertex_path: &str, fragment_path: &str) -> Self {
+    pub fn new(gl: &Gl, vertex_path: &str, fragment_path: &str) -> Self {
         let vertex_shader_source = fs::read(vertex_path).unwrap();
         let vertex_shader = unsafe {
             create_shader(
@@ -133,12 +131,12 @@ impl Shader {
             gl.DeleteShader(fragment_shader);
         };
 
-        Self { program_id, gl }
+        Self { program_id }
     }
 
-    fn get_uniform_id(&self, name: &str) -> Result<i32, String> {
+    fn get_uniform_id(&self, gl: &Gl, name: &str) -> Result<i32, String> {
         let uniform_id = unsafe {
-            self.gl.GetUniformLocation(
+            gl.GetUniformLocation(
                 self.program_id,
                 add_null_term(name.as_bytes()).as_ptr().cast(),
             )

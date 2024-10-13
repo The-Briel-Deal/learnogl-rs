@@ -53,7 +53,7 @@ impl TextureManager {
             gl.GenerateMipmap(gl::TEXTURE_2D);
         };
         dbg!(texture);
-        program.set_int(name, index).unwrap();
+        program.set_int(gl, name, index).unwrap();
 
         self.texture_name_map.insert(name.to_string(), texture);
     }

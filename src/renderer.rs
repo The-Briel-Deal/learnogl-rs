@@ -27,20 +27,20 @@ pub struct Renderer {
     textures: TextureManager,
     pub mesh_list: Vec<Mesh>,
     camera: Camera,
-    gl: Rc<Gl>,
+    gl: Gl,
 }
 
 impl Renderer {
     pub fn new<D: GlDisplay>(gl_display: &D) -> Self {
-        let gl = Rc::new(gl::Gl::load_with(|symbol| {
+        let gl = gl::Gl::load_with(|symbol| {
             let symbol = CString::new(symbol).unwrap();
             gl_display.get_proc_address(symbol.as_c_str()).cast()
-        }));
+        });
 
         unsafe { gl.Enable(gl::DEPTH_TEST) };
         setup_logging(&gl);
 
-        let program = Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl");
+        let program = Shader::new(&gl, "src/shader/vert.glsl", "src/shader/frag.glsl");
 
         let mut textures = TextureManager::new();
         textures.create_texture(&gl, "container", "static/container.jpg", &program, 0);
@@ -110,10 +110,10 @@ impl Renderer {
         unsafe {
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-            self.program.enable();
+            self.program.enable(&self.gl);
             for mesh in &self.mesh_list {
                 self.program
-                    .set_float("textureBlend", *mesh.texture_blend.borrow())
+                    .set_float(&self.gl, "textureBlend", *mesh.texture_blend.borrow())
                     .unwrap();
                 /* Bind Textures */
                 self.textures.bind_texture(&self.gl, "awesomeface", 0);
