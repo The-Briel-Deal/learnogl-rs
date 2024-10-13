@@ -142,11 +142,14 @@ impl ApplicationHandler for App {
                 let gl_surface = self.surface.as_ref().unwrap();
                 let gl_context = self.gl_context.as_ref().unwrap();
                 let renderer = self.renderer.as_ref().unwrap();
-                let meshes = &renderer.mesh_list;
                 let delta_time = self.timer.delta_time();
 
-                let GroupedKeys { movement_keys } = group_keys(&self.keys_down, meshes);
+                let GroupedKeys {
+                    movement_keys,
+                    texture_blend_keys,
+                } = group_keys(&self.keys_down);
                 renderer.handle_movement_keys(movement_keys, delta_time);
+                renderer.handle_texture_blends_keys(texture_blend_keys);
                 renderer.draw(delta_time);
                 window.request_redraw();
 
@@ -210,24 +213,28 @@ impl ApplicationHandler for App {
 
 struct GroupedKeys {
     movement_keys: Vec<KeyCode>,
+    texture_blend_keys: Vec<KeyCode>,
 }
-fn group_keys(keys_down: &HashSet<PhysicalKey>, meshes: &[Mesh]) -> GroupedKeys {
+fn group_keys(keys_down: &HashSet<PhysicalKey>) -> GroupedKeys {
     let mut movement_keys = vec![];
+    let mut texture_blend_keys = vec![];
     for key in keys_down {
         match key {
-            PhysicalKey::Code(KeyCode::KeyJ) => meshes
-                .iter()
-                .for_each(|mesh| mesh.texture_blend.borrow_mut().sub_assign(0.01)),
-            PhysicalKey::Code(KeyCode::KeyK) => meshes
-                .iter()
-                .for_each(|mesh| mesh.texture_blend.borrow_mut().add_assign(0.01)),
+            PhysicalKey::Code(key @ (KeyCode::KeyJ | KeyCode::KeyK)) => {
+                texture_blend_keys.push(*key);
+            }
             PhysicalKey::Code(
                 key @ (KeyCode::KeyW | KeyCode::KeyA | KeyCode::KeyS | KeyCode::KeyD),
-            ) => movement_keys.push(*key),
+            ) => {
+                movement_keys.push(*key);
+            }
             _ => (),
         }
     }
-    GroupedKeys { movement_keys }
+    GroupedKeys {
+        movement_keys,
+        texture_blend_keys,
+    }
 }
 
 enum GlDisplayCreationState {

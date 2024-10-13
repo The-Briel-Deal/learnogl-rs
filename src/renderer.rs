@@ -1,4 +1,9 @@
-use std::{borrow::Borrow, ffi::CString, rc::Rc};
+use std::{
+    borrow::Borrow,
+    ffi::CString,
+    ops::{AddAssign, SubAssign},
+    rc::Rc,
+};
 
 use glam::vec3;
 use glutin::prelude::GlDisplay;
@@ -59,6 +64,18 @@ impl Renderer {
 
     pub fn handle_movement_keys(&self, keys: Vec<KeyCode>, delta_time: f32) {
         self.camera.handle_movement(keys, delta_time);
+    }
+    pub fn handle_texture_blends_keys(&self, keys: Vec<KeyCode>) {
+        let mesh_list = &self.mesh_list;
+        keys.iter().for_each(|key| match key {
+            KeyCode::KeyJ => mesh_list
+                .iter()
+                .for_each(|mesh| mesh.texture_blend.borrow_mut().sub_assign(0.01)),
+            KeyCode::KeyK => mesh_list
+                .iter()
+                .for_each(|mesh| mesh.texture_blend.borrow_mut().add_assign(0.01)),
+            _ => (),
+        })
     }
 
     pub fn handle_mouse_input(&self, delta: PositionDelta2D) {
