@@ -21,7 +21,7 @@ use winit::{
     window::{CursorGrabMode, Window},
 };
 
-use crate::{gl::create_gl_context, renderer::Renderer, timer::Timer};
+use crate::{camera::Camera, gl::create_gl_context, mesh::Mesh, renderer::Renderer, timer::Timer};
 
 pub struct App {
     window: Option<Rc<Window>>,
@@ -144,22 +144,7 @@ impl ApplicationHandler for App {
                 let meshes = &renderer.mesh_list;
                 let camera = &self.renderer.as_ref().unwrap().camera;
 
-                let mut movement_keys = vec![];
-                for key in &self.keys_down {
-                    match key {
-                        PhysicalKey::Code(KeyCode::KeyJ) => meshes
-                            .iter()
-                            .for_each(|mesh| mesh.texture_blend.borrow_mut().sub_assign(0.01)),
-                        PhysicalKey::Code(KeyCode::KeyK) => meshes
-                            .iter()
-                            .for_each(|mesh| mesh.texture_blend.borrow_mut().add_assign(0.01)),
-                        PhysicalKey::Code(
-                            key @ (KeyCode::KeyW | KeyCode::KeyA | KeyCode::KeyS | KeyCode::KeyD),
-                        ) => movement_keys.push(*key),
-                        _ => (),
-                    }
-                }
-                camera.handle_movement(movement_keys, self.timer.delta_time());
+                handle_keys(&self.keys_down, meshes, camera, self.timer.delta_time());
                 renderer.draw(self.timer.delta_time());
                 window.request_redraw();
 
@@ -207,6 +192,31 @@ impl ApplicationHandler for App {
             camera.adjust_pitch(-(delta.1 as f32 / 10.0));
         }
     }
+}
+
+type Seconds = f32;
+fn handle_keys(
+    keys_down: &HashSet<PhysicalKey>,
+    meshes: &[Mesh],
+    camera: &Camera,
+    delta_time: Seconds,
+) {
+    let mut movement_keys = vec![];
+    for key in keys_down {
+        match key {
+            PhysicalKey::Code(KeyCode::KeyJ) => meshes
+                .iter()
+                .for_each(|mesh| mesh.texture_blend.borrow_mut().sub_assign(0.01)),
+            PhysicalKey::Code(KeyCode::KeyK) => meshes
+                .iter()
+                .for_each(|mesh| mesh.texture_blend.borrow_mut().add_assign(0.01)),
+            PhysicalKey::Code(
+                key @ (KeyCode::KeyW | KeyCode::KeyA | KeyCode::KeyS | KeyCode::KeyD),
+            ) => movement_keys.push(*key),
+            _ => (),
+        }
+    }
+    camera.handle_movement(movement_keys, delta_time);
 }
 
 enum GlDisplayCreationState {
