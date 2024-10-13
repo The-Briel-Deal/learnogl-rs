@@ -3,11 +3,7 @@ use std::{collections::HashMap, os::raw::c_void};
 use image::ImageReader;
 
 use crate::{
-    gl::{
-        self,
-        types::{GLenum, GLuint},
-        Gl,
-    },
+    gl::{self, types::GLuint, Gl},
     shader::{Shader, ShaderTrait},
 };
 

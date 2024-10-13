@@ -14,7 +14,7 @@ use winit::keyboard::KeyCode;
 
 use crate::{
     camera::Camera,
-    gl::{self, types::GLfloat, Gl, TEXTURE0, TEXTURE1},
+    gl::{self, types::GLfloat, Gl},
     logging::setup_logging,
     mesh::Mesh,
     shader::{Shader, ShaderTrait},
