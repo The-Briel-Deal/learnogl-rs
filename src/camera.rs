@@ -43,7 +43,7 @@ impl Direction {
     }
     /// Adjusts yaw by the specified degrees (via adding).
     fn adjust_yaw(&self, yaw: Degrees) {
-        self.inner_direction.borrow_mut().yaw += yaw;
+        self.set_yaw(self.yaw() + yaw);
         self.update_euler();
     }
 
@@ -51,12 +51,13 @@ impl Direction {
         self.inner_direction.borrow().pitch
     }
     fn set_pitch(&self, pitch: Degrees) {
-        self.inner_direction.borrow_mut().pitch = pitch;
+        // Clamping pitch to the 180 degrees in front of you.
+        self.inner_direction.borrow_mut().pitch = pitch.clamp(-89.0, 89.0);
         self.update_euler();
     }
     /// Adjusts pitch by the specified degrees (via adding).
     fn adjust_pitch(&self, pitch: Degrees) {
-        self.inner_direction.borrow_mut().pitch += pitch;
+        self.set_pitch(self.pitch() + pitch);
         self.update_euler();
     }
 }
