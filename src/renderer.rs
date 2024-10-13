@@ -1,3 +1,5 @@
+mod texture;
+
 use std::{
     borrow::Borrow,
     ffi::CString,
@@ -7,11 +9,12 @@ use std::{
 
 use glam::vec3;
 use glutin::prelude::GlDisplay;
+use texture::TextureManager;
 use winit::keyboard::KeyCode;
 
 use crate::{
     camera::Camera,
-    gl::{self, types::GLfloat, Gl},
+    gl::{self, types::GLfloat, Gl, TEXTURE0, TEXTURE1},
     logging::setup_logging,
     mesh::Mesh,
     shader::{Shader, ShaderTrait},
@@ -21,6 +24,7 @@ type PositionDelta2D = (f64, f64);
 
 pub struct Renderer {
     program: Shader,
+    textures: TextureManager,
     pub mesh_list: Vec<Mesh>,
     camera: Camera,
     gl: Rc<Gl>,
@@ -37,6 +41,10 @@ impl Renderer {
         setup_logging(&gl);
 
         let program = Shader::new(gl.clone(), "src/shader/vert.glsl", "src/shader/frag.glsl");
+
+        let mut textures = TextureManager::new();
+        textures.create_texture(&gl, "container", "static/container.jpg", &program, 0);
+        textures.create_texture(&gl, "awesomeface", "static/awesomeface.png", &program, 1);
 
         #[rustfmt::skip]
         let cube_positions = [
@@ -56,6 +64,7 @@ impl Renderer {
 
         Self {
             program,
+            textures,
             mesh_list,
             gl,
             camera: Camera::new(),
@@ -106,12 +115,9 @@ impl Renderer {
                 self.program
                     .set_float("textureBlend", *mesh.texture_blend.borrow())
                     .unwrap();
-                self.gl.ActiveTexture(gl::TEXTURE0);
-                self.gl
-                    .BindTexture(gl::TEXTURE_2D, mesh.get_texture("texture1"));
-                self.gl.ActiveTexture(gl::TEXTURE1);
-                self.gl
-                    .BindTexture(gl::TEXTURE_2D, mesh.get_texture("texture2"));
+                /* Bind Textures */
+                self.textures.bind_texture(&self.gl, "awesomeface", 0);
+                self.textures.bind_texture(&self.gl, "container", 1);
                 mesh.draw(&self.gl, self.camera.view_matrix())
             }
         }

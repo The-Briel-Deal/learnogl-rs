@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, os::raw::c_void};
+use std::{cell::RefCell, collections::HashMap, os::raw::c_void, time::Instant};
 
 use glam::{vec3, Mat4, Vec3};
 use image::ImageReader;
@@ -25,7 +25,6 @@ pub struct Mesh {
     vbo: GLuint,
     ebo: GLuint,
     transform: RefCell<Transform>,
-    texture_map: HashMap<String, GLuint>,
     fov: f32,
     pub texture_blend: RefCell<GLfloat>,
 }
@@ -42,26 +41,11 @@ impl Mesh {
                 translation,
                 scale: vec3(1.0, 1.0, 1.0),
             }),
-            texture_map: HashMap::new(),
             fov: 80.0,
             texture_blend: RefCell::new(0.2),
         };
 
         unsafe {
-            gl.ActiveTexture(gl::TEXTURE0);
-            mesh.texture_map.insert(
-                "texture1".to_string(),
-                Self::create_texture(gl, "static/container.jpg"),
-            );
-            program.set_int("texture1", 0).unwrap();
-
-            gl.ActiveTexture(gl::TEXTURE1);
-            mesh.texture_map.insert(
-                "texture2".to_string(),
-                Self::create_texture(gl, "static/awesomeface.png"),
-            );
-            program.set_int("texture2", 1).unwrap();
-
             program
                 .set_float("textureBlend", *mesh.texture_blend.borrow())
                 .unwrap();
@@ -102,10 +86,6 @@ impl Mesh {
 
     pub fn adjust_zoom(&mut self, degrees: GLfloat) {
         self.fov = (self.fov + degrees).clamp(5.0, 80.0);
-    }
-
-    pub fn get_texture(&self, name: &str) -> GLuint {
-        *self.texture_map.get(name).unwrap()
     }
 
     pub fn get_vao(&self) -> GLuint {
@@ -174,38 +154,6 @@ impl Mesh {
             gl.EnableVertexAttribArray(pos_attrib as GLuint);
             gl.EnableVertexAttribArray(texture_coord_attrib as GLuint);
         }
-    }
-
-    fn create_texture(gl: &Gl, path: &str) -> GLuint {
-        let img = ImageReader::open(path).unwrap().decode().unwrap().flipv();
-
-        let img_height = img.height();
-        let img_width = img.width();
-        let data = img.to_rgba8();
-
-        let mut texture: GLuint = 0;
-        unsafe {
-            gl.GenTextures(1, &mut texture);
-            gl.BindTexture(gl::TEXTURE_2D, texture);
-            gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
-            gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
-            gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            gl.TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            gl.TexImage2D(
-                gl::TEXTURE_2D,
-                0,
-                gl::RGB as i32,
-                img_width as i32,
-                img_height as i32,
-                0,
-                gl::RGBA,
-                gl::UNSIGNED_BYTE,
-                data.as_ptr() as *const c_void,
-            );
-            gl.GenerateMipmap(gl::TEXTURE_2D);
-        };
-
-        texture
     }
 }
 
