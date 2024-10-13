@@ -1,10 +1,9 @@
-use std::{cell::RefCell, collections::HashMap, os::raw::c_void, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, os::raw::c_void};
 
 use glam::{vec3, Mat4, Vec3};
 use image::ImageReader;
 
 use crate::{
-    camera::Camera,
     gl::{
         self,
         types::{GLfloat, GLuint},
@@ -122,7 +121,6 @@ impl Mesh {
             * Mat4::from_rotation_x((transform.rotation / 2.0).to_radians())
             * Mat4::from_rotation_y(transform.rotation.to_radians())
             * Mat4::from_scale(transform.scale);
-
 
         let projection_matrix =
             Mat4::perspective_rh_gl(self.fov.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
