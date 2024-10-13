@@ -16,6 +16,7 @@ use glutin::{
 use glutin_winit::{DisplayBuilder, GlWindow};
 use winit::{
     application::ApplicationHandler,
+    dpi::PhysicalPosition,
     event::{ElementState, WindowEvent},
     keyboard::{KeyCode, PhysicalKey},
     window::{CursorGrabMode, Window},
@@ -175,6 +176,18 @@ impl ApplicationHandler for App {
                 }
                 ElementState::Released => {
                     self.keys_down.remove(&event.physical_key);
+                }
+            },
+            WindowEvent::MouseWheel {
+                delta,
+                device_id,
+                phase,
+            } => match dbg!(delta) {
+                winit::event::MouseScrollDelta::LineDelta(x, y) => {
+                    self.renderer.as_mut().unwrap().adjust_zoom(-y);
+                }
+                winit::event::MouseScrollDelta::PixelDelta(PhysicalPosition { x, y }) => {
+                    self.renderer.as_mut().unwrap().adjust_zoom(-y as f32);
                 }
             },
             _ => (),

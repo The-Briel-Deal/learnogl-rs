@@ -87,6 +87,13 @@ impl Renderer {
             }
         }
     }
+
+    pub fn adjust_zoom(&mut self, degrees: GLfloat) {
+        for mesh in &mut self.mesh_list {
+            mesh.adjust_zoom(degrees);
+        }
+    }
+
     pub fn resize(&self, width: i32, height: i32) {
         unsafe { self.gl.Viewport(0, 0, width, height) }
     }

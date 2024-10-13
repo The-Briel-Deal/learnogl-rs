@@ -28,6 +28,7 @@ pub struct Mesh {
     transform: RefCell<Transform>,
     texture_map: HashMap<String, GLuint>,
     camera: Rc<Camera>,
+    fov: f32,
     pub texture_blend: RefCell<GLfloat>,
 }
 
@@ -45,6 +46,7 @@ impl Mesh {
             }),
             texture_map: HashMap::new(),
             camera,
+            fov: 80.0,
             texture_blend: RefCell::new(0.2),
         };
 
@@ -101,6 +103,10 @@ impl Mesh {
         transform.rotation += degrees;
     }
 
+    pub fn adjust_zoom(&mut self, degrees: GLfloat) {
+        self.fov = (self.fov + degrees).clamp(5.0, 80.0);
+    }
+
     pub fn get_texture(&self, name: &str) -> GLuint {
         *self.texture_map.get(name).unwrap()
     }
@@ -122,7 +128,7 @@ impl Mesh {
         let view_matrix = Mat4::IDENTITY * self.camera.look_at_target();
 
         let projection_matrix =
-            Mat4::perspective_rh_gl(80.0_f32.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
+            Mat4::perspective_rh_gl(self.fov.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
 
         let output_matrix = Mat4::IDENTITY * projection_matrix * view_matrix * model_matrix; // * transformation_matrix;
 
