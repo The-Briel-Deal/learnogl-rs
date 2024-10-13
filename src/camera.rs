@@ -1,8 +1,11 @@
 use std::{cell::RefCell, ops::Mul};
 
 use glam::{vec3, Mat4, Vec3};
+use winit::keyboard::KeyCode;
 
 const WORLD_ORIGIN: Vec3 = vec3(0.0, 0.0, 0.0);
+const SPEED: f32 = 2.0;
+
 type Degrees = f32;
 struct InnerDirection {
     yaw: Degrees,
@@ -107,21 +110,32 @@ impl Camera {
             self.up,
         )
     }
-    pub fn move_right(&self, distance: f32) {
-        let mut pos = self.pos.borrow_mut();
-        *pos -= self.dir.euler().cross(self.up).normalize().mul(distance);
+    fn get_right_dir(&self) -> Vec3 {
+        -self.dir.euler().cross(self.up).normalize()
     }
-    pub fn move_left(&self, distance: f32) {
-        let mut pos = self.pos.borrow_mut();
-        *pos += self.dir.euler().cross(self.up).normalize().mul(distance);
+    fn get_left_dir(&self) -> Vec3 {
+        self.dir.euler().cross(self.up).normalize()
     }
-    pub fn move_forward(&self, distance: f32) {
-        let mut pos = self.pos.borrow_mut();
-        *pos += self.dir.euler() * distance;
+    fn get_forwards_dir(&self) -> Vec3 {
+        self.dir.euler()
     }
-    pub fn move_backward(&self, distance: f32) {
-        let mut pos = self.pos.borrow_mut();
-        *pos -= self.dir.euler() * distance;
+    fn get_backwards_dir(&self) -> Vec3 {
+        -self.dir.euler()
+    }
+
+    pub fn handle_movement(&self, keys: Vec<KeyCode>, delta_time: f32) {
+        let mut dir = Vec3::ZERO;
+        for key in keys {
+            dir += match key {
+                KeyCode::KeyW => self.get_forwards_dir(),
+                KeyCode::KeyA => self.get_right_dir(),
+                KeyCode::KeyS => self.get_backwards_dir(),
+                KeyCode::KeyD => self.get_left_dir(),
+                _ => panic!("Key passed to handle movement that wasn't expected."),
+            }
+        }
+        let mut camera_position = self.pos.borrow_mut();
+        *camera_position += dir.normalize_or_zero() * SPEED * delta_time;
     }
 
     pub fn pitch(&self) -> Degrees {

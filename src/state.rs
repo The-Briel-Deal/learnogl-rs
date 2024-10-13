@@ -23,8 +23,6 @@ use winit::{
 
 use crate::{gl::create_gl_context, renderer::Renderer, timer::Timer};
 
-const SPEED: f32 = 2.0;
-
 pub struct App {
     window: Option<Rc<Window>>,
     surface: Option<Surface<WindowSurface>>,
@@ -146,6 +144,7 @@ impl ApplicationHandler for App {
                 let meshes = &renderer.mesh_list;
                 let camera = &self.renderer.as_ref().unwrap().camera;
 
+                let mut movement_keys = vec![];
                 for key in &self.keys_down {
                     match key {
                         PhysicalKey::Code(KeyCode::KeyJ) => meshes
@@ -154,21 +153,13 @@ impl ApplicationHandler for App {
                         PhysicalKey::Code(KeyCode::KeyK) => meshes
                             .iter()
                             .for_each(|mesh| mesh.texture_blend.borrow_mut().add_assign(0.01)),
-                        PhysicalKey::Code(KeyCode::KeyW) => {
-                            camera.move_forward(SPEED * self.timer.delta_time())
-                        }
-                        PhysicalKey::Code(KeyCode::KeyA) => {
-                            camera.move_right(SPEED * self.timer.delta_time())
-                        }
-                        PhysicalKey::Code(KeyCode::KeyS) => {
-                            camera.move_backward(SPEED * self.timer.delta_time())
-                        }
-                        PhysicalKey::Code(KeyCode::KeyD) => {
-                            camera.move_left(SPEED * self.timer.delta_time())
-                        }
+                        PhysicalKey::Code(
+                            key @ (KeyCode::KeyW | KeyCode::KeyA | KeyCode::KeyS | KeyCode::KeyD),
+                        ) => movement_keys.push(*key),
                         _ => (),
                     }
                 }
+                camera.handle_movement(movement_keys, self.timer.delta_time());
                 renderer.draw(self.timer.delta_time());
                 window.request_redraw();
 
