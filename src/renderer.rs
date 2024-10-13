@@ -2,6 +2,7 @@ use std::{borrow::Borrow, ffi::CString, rc::Rc};
 
 use glam::vec3;
 use glutin::prelude::GlDisplay;
+use winit::keyboard::KeyCode;
 
 use crate::{
     camera::Camera,
@@ -54,17 +55,25 @@ impl Renderer {
         }
     }
 
+    pub fn handle_movement_keys(&self, keys: Vec<KeyCode>, delta_time: f32) {
+        self.camera.handle_movement(keys, delta_time);
+    }
+
     pub fn draw(&self, _delta_time: f32) {
         self.draw_with_clear_color(0.1, 0.1, 0.1, 0.9);
     }
 
-    pub fn draw_with_clear_color(
-        &self,
-        red: GLfloat,
-        green: GLfloat,
-        blue: GLfloat,
-        alpha: GLfloat,
-    ) {
+    pub fn adjust_zoom(&mut self, degrees: GLfloat) {
+        for mesh in &mut self.mesh_list {
+            mesh.adjust_zoom(degrees);
+        }
+    }
+
+    pub fn resize(&self, width: i32, height: i32) {
+        unsafe { self.gl.Viewport(0, 0, width, height) }
+    }
+
+    fn draw_with_clear_color(&self, red: GLfloat, green: GLfloat, blue: GLfloat, alpha: GLfloat) {
         unsafe {
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -82,15 +91,5 @@ impl Renderer {
                 mesh.draw(&self.gl, self.camera.view_matrix())
             }
         }
-    }
-
-    pub fn adjust_zoom(&mut self, degrees: GLfloat) {
-        for mesh in &mut self.mesh_list {
-            mesh.adjust_zoom(degrees);
-        }
-    }
-
-    pub fn resize(&self, width: i32, height: i32) {
-        unsafe { self.gl.Viewport(0, 0, width, height) }
     }
 }

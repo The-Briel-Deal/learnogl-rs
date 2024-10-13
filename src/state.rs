@@ -143,10 +143,11 @@ impl ApplicationHandler for App {
                 let gl_context = self.gl_context.as_ref().unwrap();
                 let renderer = self.renderer.as_ref().unwrap();
                 let meshes = &renderer.mesh_list;
-                let camera = &self.renderer.as_ref().unwrap().camera;
+                let delta_time = self.timer.delta_time();
 
-                handle_keys(&self.keys_down, meshes, camera, self.timer.delta_time());
-                renderer.draw(self.timer.delta_time());
+                let GroupedKeys { movement_keys } = group_keys(&self.keys_down, meshes);
+                renderer.handle_movement_keys(movement_keys, delta_time);
+                renderer.draw(delta_time);
                 window.request_redraw();
 
                 gl_surface.swap_buffers(gl_context).unwrap();
@@ -208,12 +209,10 @@ impl ApplicationHandler for App {
 }
 
 type Seconds = f32;
-fn handle_keys(
-    keys_down: &HashSet<PhysicalKey>,
-    meshes: &[Mesh],
-    camera: &Camera,
-    delta_time: Seconds,
-) {
+struct GroupedKeys {
+    movement_keys: Vec<KeyCode>,
+}
+fn group_keys(keys_down: &HashSet<PhysicalKey>, meshes: &[Mesh]) -> GroupedKeys {
     let mut movement_keys = vec![];
     for key in keys_down {
         match key {
@@ -229,7 +228,7 @@ fn handle_keys(
             _ => (),
         }
     }
-    camera.handle_movement(movement_keys, delta_time);
+    GroupedKeys { movement_keys }
 }
 
 enum GlDisplayCreationState {
