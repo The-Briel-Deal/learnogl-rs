@@ -105,7 +105,13 @@ impl Renderer {
         unsafe { self.gl.Viewport(0, 0, width, height) }
     }
 
-    fn draw_with_clear_color(&mut self, red: GLfloat, green: GLfloat, blue: GLfloat, alpha: GLfloat) {
+    fn draw_with_clear_color(
+        &mut self,
+        red: GLfloat,
+        green: GLfloat,
+        blue: GLfloat,
+        alpha: GLfloat,
+    ) {
         unsafe {
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);

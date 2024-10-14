@@ -105,13 +105,8 @@ impl ShaderTrait for Shader {
 impl Shader {
     pub fn new(gl: &Gl, vertex_path: &str, fragment_path: &str) -> Self {
         let vertex_shader_source = fs::read(vertex_path).unwrap();
-        let vertex_shader = unsafe {
-            create_shader(
-                gl,
-                gl::VERTEX_SHADER,
-                &add_null_term(&vertex_shader_source),
-            )
-        };
+        let vertex_shader =
+            unsafe { create_shader(gl, gl::VERTEX_SHADER, &add_null_term(&vertex_shader_source)) };
 
         let fragment_shader_source = fs::read(fragment_path).unwrap();
         let fragment_shader = unsafe {
