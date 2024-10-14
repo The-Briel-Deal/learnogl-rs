@@ -4,7 +4,6 @@ use std::{
     borrow::Borrow,
     ffi::CString,
     ops::{AddAssign, SubAssign},
-    rc::Rc,
 };
 
 use glam::vec3;

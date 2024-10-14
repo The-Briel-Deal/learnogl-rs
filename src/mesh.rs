@@ -106,7 +106,9 @@ impl Mesh {
 
         let output_matrix = Mat4::IDENTITY * projection_matrix * view_matrix * model_matrix; // * transformation_matrix;
 
-        self.program.set_mat4(gl, "transform", output_matrix).unwrap();
+        self.program
+            .set_mat4(gl, "transform", output_matrix)
+            .unwrap();
         unsafe {
             gl.BindVertexArray(self.get_vao());
             gl.DrawArrays(gl::TRIANGLES, 0, 36);
