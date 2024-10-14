@@ -1,4 +1,4 @@
-use std::{cell::RefCell, os::raw::c_void};
+use std::os::raw::c_void;
 
 use glam::{vec3, Mat4, Vec3};
 
@@ -25,7 +25,7 @@ pub struct Mesh {
     ebo: GLuint,
     transform: Transform,
     fov: f32,
-    pub texture_blend: RefCell<GLfloat>,
+    texture_blend: GLfloat,
 }
 
 impl Mesh {
@@ -41,12 +41,12 @@ impl Mesh {
                 scale: vec3(1.0, 1.0, 1.0),
             },
             fov: 80.0,
-            texture_blend: RefCell::new(0.2),
+            texture_blend: 0.2,
         };
 
         unsafe {
             program
-                .set_float(gl, "textureBlend", *mesh.texture_blend.borrow())
+                .set_float(gl, "textureBlend", mesh.texture_blend)
                 .unwrap();
 
             gl.GenVertexArrays(1, &mut mesh.vao);
@@ -76,6 +76,13 @@ impl Mesh {
         };
 
         mesh
+    }
+
+    pub fn adjust_blend(&mut self, percent: f32) {
+        self.texture_blend = (self.texture_blend + percent).clamp(0.0, 1.0);
+    }
+    pub fn blend(&self) -> f32 {
+        self.texture_blend
     }
 
     pub fn rotate_by(&mut self, degrees: GLfloat) {

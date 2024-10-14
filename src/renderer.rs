@@ -1,10 +1,6 @@
 mod texture;
 
-use std::{
-    borrow::Borrow,
-    ffi::CString,
-    ops::{AddAssign, SubAssign},
-};
+use std::{borrow::Borrow, ffi::CString};
 
 use glam::vec3;
 use glutin::prelude::GlDisplay;
@@ -73,15 +69,15 @@ impl Renderer {
     pub fn handle_movement_keys(&self, keys: Vec<KeyCode>, delta_time: f32) {
         self.camera.handle_movement(keys, delta_time);
     }
-    pub fn handle_texture_blends_keys(&self, keys: Vec<KeyCode>) {
-        let mesh_list = &self.mesh_list;
+    pub fn handle_texture_blends_keys(&mut self, keys: Vec<KeyCode>) {
+        let mesh_list = &mut self.mesh_list;
         keys.iter().for_each(|key| match key {
             KeyCode::KeyJ => mesh_list
-                .iter()
-                .for_each(|mesh| mesh.texture_blend.borrow_mut().sub_assign(0.01)),
+                .iter_mut()
+                .for_each(|mesh| mesh.adjust_blend(-0.01)),
             KeyCode::KeyK => mesh_list
-                .iter()
-                .for_each(|mesh| mesh.texture_blend.borrow_mut().add_assign(0.01)),
+                .iter_mut()
+                .for_each(|mesh| mesh.adjust_blend(0.01)),
             _ => (),
         })
     }
@@ -118,7 +114,7 @@ impl Renderer {
             self.program.enable(&self.gl);
             for mesh in &mut self.mesh_list {
                 self.program
-                    .set_float(&self.gl, "textureBlend", *mesh.texture_blend.borrow())
+                    .set_float(&self.gl, "textureBlend", mesh.blend())
                     .unwrap();
                 /* Bind Textures */
                 self.textures.bind_texture(&self.gl, "awesomeface", 0);
