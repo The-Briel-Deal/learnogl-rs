@@ -107,7 +107,7 @@ impl Shader {
         let vertex_shader_source = fs::read(vertex_path).unwrap();
         let vertex_shader = unsafe {
             create_shader(
-                &gl,
+                gl,
                 gl::VERTEX_SHADER,
                 &add_null_term(&vertex_shader_source),
             )
@@ -116,7 +116,7 @@ impl Shader {
         let fragment_shader_source = fs::read(fragment_path).unwrap();
         let fragment_shader = unsafe {
             create_shader(
-                &gl,
+                gl,
                 gl::FRAGMENT_SHADER,
                 &add_null_term(&fragment_shader_source),
             )

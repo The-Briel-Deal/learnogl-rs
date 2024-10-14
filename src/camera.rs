@@ -1,5 +1,4 @@
 mod direction;
-use std::cell::RefCell;
 
 use direction::{Degrees, Direction};
 use glam::{vec3, Mat4, Vec3};
@@ -8,7 +7,7 @@ use winit::keyboard::KeyCode;
 const SPEED: f32 = 2.0;
 
 pub struct Camera {
-    pos: RefCell<Vec3>,
+    pos: Vec3,
     dir: Direction,
     up: Vec3,
 }
@@ -20,8 +19,8 @@ impl Camera {
 
     pub fn view_matrix(&self) -> Mat4 {
         Mat4::look_at_rh(
-            *self.pos.borrow(),
-            *self.pos.borrow() + self.dir.euler(),
+            self.pos,
+            self.pos + self.dir.euler(),
             self.up,
         )
     }
@@ -49,8 +48,8 @@ impl Camera {
                 _ => panic!("Key passed to handle movement that wasn't expected."),
             }
         }
-        let mut camera_position = self.pos.borrow_mut();
-        *camera_position += dir.normalize_or_zero() * SPEED * delta_time;
+        let mut camera_position = self.pos;
+        camera_position += dir.normalize_or_zero() * SPEED * delta_time;
     }
 
     pub fn pitch(&self) -> Degrees {
@@ -85,7 +84,7 @@ impl Default for Camera {
 
         let camera_up = camera_dir.euler().cross(camera_right);
         Camera {
-            pos: RefCell::new(camera_pos),
+            pos: camera_pos,
             dir: camera_dir,
             up: camera_up,
         }

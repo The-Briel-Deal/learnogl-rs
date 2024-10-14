@@ -1,19 +1,19 @@
-use std::{cell::RefCell, time::Instant};
+use std::time::Instant;
 
 pub struct Timer {
-    last_instant: RefCell<Instant>,
-    last_delta: RefCell<f32>,
+    last_instant: Instant,
+    last_delta: f32,
 }
 
 impl Timer {
     /// Time since last call to delta time in seconds.
     pub fn delta_time(&self) -> f32 {
-        *self.last_delta.borrow()
+        self.last_delta
     }
 
-    pub fn reset(&self) {
-        *self.last_delta.borrow_mut() = self.last_instant.borrow().elapsed().as_secs_f32();
-        *self.last_instant.borrow_mut() = Instant::now();
+    pub fn reset(&mut self) {
+        self.last_delta = self.last_instant.elapsed().as_secs_f32();
+        self.last_instant = Instant::now();
     }
 
     pub fn new() -> Self {
@@ -24,8 +24,8 @@ impl Timer {
 impl Default for Timer {
     fn default() -> Self {
         Self {
-            last_instant: RefCell::new(Instant::now()),
-            last_delta: RefCell::new(0.0),
+            last_instant: Instant::now(),
+            last_delta: 0.0,
         }
     }
 }
