@@ -91,7 +91,7 @@ impl Renderer {
         self.camera.adjust_pitch(-(delta.1 as f32 / 10.0));
     }
 
-    pub fn draw(&self, _delta_time: f32) {
+    pub fn draw(&mut self, _delta_time: f32) {
         self.draw_with_clear_color(0.1, 0.1, 0.1, 0.9);
     }
 
@@ -105,12 +105,12 @@ impl Renderer {
         unsafe { self.gl.Viewport(0, 0, width, height) }
     }
 
-    fn draw_with_clear_color(&self, red: GLfloat, green: GLfloat, blue: GLfloat, alpha: GLfloat) {
+    fn draw_with_clear_color(&mut self, red: GLfloat, green: GLfloat, blue: GLfloat, alpha: GLfloat) {
         unsafe {
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
             self.program.enable(&self.gl);
-            for mesh in &self.mesh_list {
+            for mesh in &mut self.mesh_list {
                 self.program
                     .set_float(&self.gl, "textureBlend", *mesh.texture_blend.borrow())
                     .unwrap();

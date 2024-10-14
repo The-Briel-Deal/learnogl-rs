@@ -23,7 +23,7 @@ pub struct Mesh {
     vao: GLuint,
     vbo: GLuint,
     ebo: GLuint,
-    transform: RefCell<Transform>,
+    transform: Transform,
     fov: f32,
     pub texture_blend: RefCell<GLfloat>,
 }
@@ -35,11 +35,11 @@ impl Mesh {
             vao: 0,
             vbo: 0,
             ebo: 0,
-            transform: RefCell::new(Transform {
+            transform: Transform {
                 rotation: get_rand_angle(),
                 translation,
                 scale: vec3(1.0, 1.0, 1.0),
-            }),
+            },
             fov: 80.0,
             texture_blend: RefCell::new(0.2),
         };
@@ -78,8 +78,8 @@ impl Mesh {
         mesh
     }
 
-    pub fn rotate_by(&self, degrees: GLfloat) {
-        let mut transform = self.transform.borrow_mut();
+    pub fn rotate_by(&mut self, degrees: GLfloat) {
+        let transform = &mut self.transform;
         transform.rotation += degrees;
     }
 
@@ -91,9 +91,9 @@ impl Mesh {
         self.vao
     }
 
-    pub fn draw(&self, gl: &Gl, view_matrix: Mat4) {
+    pub fn draw(&mut self, gl: &Gl, view_matrix: Mat4) {
         self.rotate_by(1.0);
-        let transform = self.transform.borrow();
+        let transform = &self.transform;
 
         let model_matrix = Mat4::IDENTITY
             * Mat4::from_translation(transform.translation)

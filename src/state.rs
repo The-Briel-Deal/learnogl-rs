@@ -136,7 +136,7 @@ impl ApplicationHandler for App {
                 let window = self.window.as_ref().unwrap();
                 let gl_surface = self.surface.as_ref().unwrap();
                 let gl_context = self.gl_context.as_ref().unwrap();
-                let renderer = self.renderer.as_ref().unwrap();
+                let renderer = self.renderer.as_mut().unwrap();
                 let delta_time = self.timer.delta_time();
 
                 let GroupedKeys {
