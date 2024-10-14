@@ -66,7 +66,7 @@ impl Renderer {
         }
     }
 
-    pub fn handle_movement_keys(&self, keys: Vec<KeyCode>, delta_time: f32) {
+    pub fn handle_movement_keys(&mut self, keys: Vec<KeyCode>, delta_time: f32) {
         self.camera.handle_movement(keys, delta_time);
     }
     pub fn handle_texture_blends_keys(&mut self, keys: Vec<KeyCode>) {

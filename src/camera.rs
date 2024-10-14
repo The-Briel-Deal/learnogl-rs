@@ -33,7 +33,7 @@ impl Camera {
         -self.dir.euler()
     }
 
-    pub fn handle_movement(&self, keys: Vec<KeyCode>, delta_time: f32) {
+    pub fn handle_movement(&mut self, keys: Vec<KeyCode>, delta_time: f32) {
         let mut dir = Vec3::ZERO;
         for key in keys {
             dir += match key {
@@ -44,8 +44,8 @@ impl Camera {
                 _ => panic!("Key passed to handle movement that wasn't expected."),
             }
         }
-        let mut camera_position = self.pos;
-        camera_position += dir.normalize_or_zero() * SPEED * delta_time;
+        let camera_position = &mut self.pos;
+        *camera_position += dir.normalize_or_zero() * SPEED * delta_time;
     }
 
     pub fn pitch(&self) -> Degrees {
