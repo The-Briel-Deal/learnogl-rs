@@ -18,7 +18,7 @@ impl Camera {
     }
 
     pub fn view_matrix(&self) -> Mat4 {
-        Mat4::look_to_rh(self.pos,self.dir.euler(), self.up)
+        Mat4::look_to_rh(self.pos, self.dir.euler(), self.up)
     }
     fn get_right_dir(&self) -> Vec3 {
         -self.dir.euler().cross(self.up).normalize()
