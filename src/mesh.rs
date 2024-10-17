@@ -111,11 +111,19 @@ impl Mesh {
         let projection_matrix =
             Mat4::perspective_rh_gl(self.fov.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
 
-        let output_matrix = Mat4::IDENTITY * projection_matrix * view_matrix * model_matrix; // * transformation_matrix;
 
         self.program
-            .set_mat4(gl, "transform", output_matrix)
+            .set_mat4(gl, "model", model_matrix)
             .unwrap();
+
+        self.program
+            .set_mat4(gl, "view", view_matrix)
+            .unwrap();
+
+        self.program
+            .set_mat4(gl, "projection", projection_matrix)
+            .unwrap();
+
         unsafe {
             gl.BindVertexArray(self.get_vao());
             gl.DrawArrays(gl::TRIANGLES, 0, 36);
@@ -133,10 +141,10 @@ impl Mesh {
             );
 
             let pos_attrib =
-                gl.GetAttribLocation(program, b"position\0".as_ptr() as *const gl::types::GLchar);
+                gl.GetAttribLocation(program, b"aPos\0".as_ptr() as *const gl::types::GLchar);
             let texture_coord_attrib = gl.GetAttribLocation(
                 program,
-                b"textureCoord\0".as_ptr() as *const gl::types::GLchar,
+                b"aTexCoord\0".as_ptr() as *const gl::types::GLchar,
             );
 
             #[allow(clippy::erasing_op)] // I am turning this off so that the last arg is clear.
