@@ -1,7 +1,4 @@
-use std::{
-    ffi::{CStr, CString},
-    os::raw::c_void,
-};
+use std::{ffi::CString, os::raw::c_void};
 
 use glam::{vec3, Mat4, Vec3};
 
@@ -36,10 +33,7 @@ struct VertexBuffer {
 
 impl VertexBuffer {
     pub fn new(gl: &Gl, buffer: &[f32]) -> Self {
-        let mut vertex_buffer = Self {
-            vbo: 0,
-            vao: 0,
-        };
+        let mut vertex_buffer = Self { vbo: 0, vao: 0 };
 
         unsafe {
             gl.CreateBuffers(1, &mut vertex_buffer.vbo);
