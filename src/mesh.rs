@@ -1,4 +1,4 @@
-use std::os::raw::c_void;
+use std::{ffi::{CStr, CString}, os::raw::c_void};
 
 use glam::{vec3, Mat4, Vec3};
 
@@ -21,11 +21,69 @@ struct Transform {
 pub struct Mesh {
     program: Shader,
     vao: GLuint,
-    vbo: GLuint,
+    vbo: VertexBuffer,
     ebo: GLuint,
     transform: Transform,
     fov: f32,
     texture_blend: GLfloat,
+}
+
+struct VertexBuffer {
+    vbo: u32,
+}
+
+impl VertexBuffer {
+    pub fn new(gl: &Gl, buffer: &[f32]) -> Self {
+        let mut vertex_buffer = Self { vbo: 0 };
+        let vbo = &mut vertex_buffer.vbo;
+
+        unsafe {
+            gl.GenBuffers(1, vbo);
+            gl.BindBuffer(gl::ARRAY_BUFFER, *vbo);
+            gl.BufferData(
+                gl::ARRAY_BUFFER,
+                (std::mem::size_of_val(buffer)) as gl::types::GLsizeiptr,
+                buffer.as_ptr() as *const _,
+                gl::STATIC_DRAW,
+            );
+            gl.BindBuffer(gl::ARRAY_BUFFER, 0);
+        };
+
+        vertex_buffer
+    }
+
+    pub fn bind(&self, gl: &Gl) {
+        unsafe { gl.BindBuffer(gl::ARRAY_BUFFER, self.vbo) };
+    }
+    pub fn unbind(&self, gl: &Gl) {
+        unsafe { gl.BindBuffer(gl::ARRAY_BUFFER, 0) };
+    }
+    pub fn set_float_attribute_position(
+        &self,
+        gl: &Gl,
+        shader_attribute_name: &str,
+        program: u32,
+        start: u32,
+        length: u32,
+        stride: u32,
+    ) {
+        unsafe {
+            
+            
+            let c_shader_attribute_name = CString::new(shader_attribute_name).unwrap();
+            let attrib =
+                gl.GetAttribLocation(program, c_shader_attribute_name.as_ptr() as *const gl::types::GLchar);
+
+            gl.VertexAttribPointer(
+                attrib as gl::types::GLuint,
+                length as i32,
+                gl::FLOAT,
+                gl::FALSE,
+                stride as i32 * std::mem::size_of::<f32>() as gl::types::GLsizei,
+                (start as usize * size_of::<f32>()) as *const c_void,
+            );
+        }
+    }
 }
 
 impl Mesh {
@@ -33,7 +91,7 @@ impl Mesh {
         let mut mesh = Mesh {
             program: program.clone(),
             vao: 0,
-            vbo: 0,
+            vbo: VertexBuffer::new(gl, &VERTEX_DATA),
             ebo: 0,
             transform: Transform {
                 rotation: get_rand_angle(),
@@ -70,9 +128,7 @@ impl Mesh {
 
             /* EBO end */
 
-            gl.GenBuffers(1, &mut mesh.vbo);
-
-            Self::point_attributes_to_buffer(gl, mesh.vbo, program.get_id(), &VERTEX_DATA);
+            Self::point_attributes_to_buffer(gl, &mesh.vbo, program.get_id());
         };
 
         mesh
@@ -111,14 +167,9 @@ impl Mesh {
         let projection_matrix =
             Mat4::perspective_rh_gl(self.fov.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
 
+        self.program.set_mat4(gl, "model", model_matrix).unwrap();
 
-        self.program
-            .set_mat4(gl, "model", model_matrix)
-            .unwrap();
-
-        self.program
-            .set_mat4(gl, "view", view_matrix)
-            .unwrap();
+        self.program.set_mat4(gl, "view", view_matrix).unwrap();
 
         self.program
             .set_mat4(gl, "projection", projection_matrix)
@@ -130,45 +181,19 @@ impl Mesh {
         }
     }
 
-    fn point_attributes_to_buffer(gl: &gl::Gl, vbo: u32, program: u32, verticies: &[f32]) {
+    fn point_attributes_to_buffer(gl: &gl::Gl, vbo: &VertexBuffer, program: u32) {
         unsafe {
-            gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
-            gl.BufferData(
-                gl::ARRAY_BUFFER,
-                (std::mem::size_of_val(verticies)) as gl::types::GLsizeiptr,
-                verticies.as_ptr() as *const _,
-                gl::STATIC_DRAW,
-            );
-
             let pos_attrib =
                 gl.GetAttribLocation(program, b"aPos\0".as_ptr() as *const gl::types::GLchar);
-            let texture_coord_attrib = gl.GetAttribLocation(
-                program,
-                b"aTexCoord\0".as_ptr() as *const gl::types::GLchar,
-            );
-
-            #[allow(clippy::erasing_op)] // I am turning this off so that the last arg is clear.
-            gl.VertexAttribPointer(
-                pos_attrib as gl::types::GLuint,
-                3,
-                gl::FLOAT,
-                gl::FALSE,
-                5 * std::mem::size_of::<f32>() as gl::types::GLsizei,
-                (0 * size_of::<f32>()) as *const c_void,
-            );
-            gl.VertexAttribPointer(
-                texture_coord_attrib as gl::types::GLuint,
-                2,
-                gl::FLOAT,
-                gl::FALSE,
-                5 * std::mem::size_of::<f32>() as gl::types::GLsizei,
-                (3 * size_of::<f32>()) as *const c_void,
-            );
-
-            gl.BindBuffer(gl::ARRAY_BUFFER, 0);
-
+            let texture_coord_attrib =
+                gl.GetAttribLocation(program, b"aTexCoord\0".as_ptr() as *const gl::types::GLchar);
             gl.EnableVertexAttribArray(pos_attrib as GLuint);
             gl.EnableVertexAttribArray(texture_coord_attrib as GLuint);
+
+            vbo.bind(gl);
+            vbo.set_float_attribute_position(gl, "aPos", program, 0, 3, 5);
+            vbo.set_float_attribute_position(gl, "aTexCoord", program, 3, 2, 5);
+            vbo.unbind(gl);
         }
     }
 }

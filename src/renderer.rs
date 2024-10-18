@@ -36,6 +36,7 @@ impl Renderer {
         setup_logging(&gl);
 
         let program = Shader::new(&gl, "src/shader/vert.glsl", "src/shader/frag.glsl");
+        let light_source_program = Shader::new(&gl, "src/shader/light_vert.glsl", "src/shader/frag.glsl");
 
         let mut textures = TextureManager::new();
         textures.create_texture(&gl, "container", "static/container.jpg", &program, 0);
@@ -55,7 +56,8 @@ impl Renderer {
             vec3(-1.3,  1.0, -1.5)
         ];
 
-        let mesh_list = Vec::from(cube_positions.map(|pos| Mesh::new(gl.borrow(), &program, pos)));
+        let mut mesh_list = Vec::from(cube_positions.map(|pos| Mesh::new(gl.borrow(), &program, pos)));
+        mesh_list.push(Mesh::new(gl.borrow(), &light_source_program, vec3(0.0, 2.0, 0.0)));
 
         Self {
             program,
