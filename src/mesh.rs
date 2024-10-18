@@ -141,7 +141,22 @@ impl Mesh {
             texture_blend: 0.2,
         };
 
-        Self::point_attributes_to_buffer(gl, &mesh.vertex_buffer, program.get_id());
+        unsafe {
+            let pos_attrib =
+                gl.GetAttribLocation(program.get_id(), b"aPos\0".as_ptr() as *const gl::types::GLchar);
+            let texture_coord_attrib =
+                gl.GetAttribLocation(program.get_id(), b"aTexCoord\0".as_ptr() as *const gl::types::GLchar);
+
+            mesh.vertex_buffer.bind_vao(gl);
+            gl.EnableVertexAttribArray(pos_attrib as GLuint);
+            gl.EnableVertexAttribArray(texture_coord_attrib as GLuint);
+            mesh.vertex_buffer.unbind_vao(gl);
+
+            mesh.vertex_buffer.bind_vbo(gl);
+            mesh.vertex_buffer.set_float_attribute_position(gl, "aPos", program.get_id(), 0, 3, 5);
+            mesh.vertex_buffer.set_float_attribute_position(gl, "aTexCoord", program.get_id(), 3, 2, 5);
+            mesh.vertex_buffer.unbind_vbo(gl);
+        }
 
         mesh
     }
@@ -190,25 +205,6 @@ impl Mesh {
         unsafe {
             gl.BindVertexArray(self.vao());
             gl.DrawArrays(gl::TRIANGLES, 0, 36);
-        }
-    }
-
-    fn point_attributes_to_buffer(gl: &gl::Gl, vbo: &VertexBuffer, program: u32) {
-        unsafe {
-            let pos_attrib =
-                gl.GetAttribLocation(program, b"aPos\0".as_ptr() as *const gl::types::GLchar);
-            let texture_coord_attrib =
-                gl.GetAttribLocation(program, b"aTexCoord\0".as_ptr() as *const gl::types::GLchar);
-
-            vbo.bind_vao(gl);
-            gl.EnableVertexAttribArray(pos_attrib as GLuint);
-            gl.EnableVertexAttribArray(texture_coord_attrib as GLuint);
-            vbo.unbind_vao(gl);
-
-            vbo.bind_vbo(gl);
-            vbo.set_float_attribute_position(gl, "aPos", program, 0, 3, 5);
-            vbo.set_float_attribute_position(gl, "aTexCoord", program, 3, 2, 5);
-            vbo.unbind_vbo(gl);
         }
     }
 }
