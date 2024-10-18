@@ -32,7 +32,6 @@ pub struct Mesh {
 struct VertexBuffer {
     vbo: u32,
     vao: u32,
-    ebo: u32,
 }
 
 impl VertexBuffer {
@@ -40,41 +39,21 @@ impl VertexBuffer {
         let mut vertex_buffer = Self {
             vbo: 0,
             vao: 0,
-            ebo: 0,
         };
 
         unsafe {
-            gl.GenBuffers(1, &mut vertex_buffer.vbo);
+            gl.CreateBuffers(1, &mut vertex_buffer.vbo);
 
-            vertex_buffer.bind_vbo(gl);
-            gl.BufferData(
-                gl::ARRAY_BUFFER,
+            gl.NamedBufferData(
+                vertex_buffer.vbo,
                 (std::mem::size_of_val(buffer)) as gl::types::GLsizeiptr,
                 buffer.as_ptr() as *const _,
                 gl::STATIC_DRAW,
             );
-            vertex_buffer.unbind_vbo(gl);
         };
 
         unsafe {
-            gl.GenVertexArrays(1, &mut vertex_buffer.vao);
-        };
-
-        unsafe {
-            gl.GenBuffers(1, &mut vertex_buffer.ebo);
-            gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, vertex_buffer.ebo);
-
-            let ebo_indicies = [
-                0, 1, 3, // Triangle One
-                1, 2, 3, // Triangle Two
-            ];
-
-            gl.BufferData(
-                gl::ELEMENT_ARRAY_BUFFER,
-                size_of_val(&ebo_indicies) as isize,
-                ebo_indicies.as_ptr() as *const c_void,
-                gl::STATIC_DRAW,
-            );
+            gl.CreateVertexArrays(1, &mut vertex_buffer.vao);
         };
 
         vertex_buffer
@@ -142,19 +121,29 @@ impl Mesh {
         };
 
         unsafe {
-            let pos_attrib =
-                gl.GetAttribLocation(program.get_id(), b"aPos\0".as_ptr() as *const gl::types::GLchar);
-            let texture_coord_attrib =
-                gl.GetAttribLocation(program.get_id(), b"aTexCoord\0".as_ptr() as *const gl::types::GLchar);
+            let pos_attrib = gl.GetAttribLocation(
+                program.get_id(),
+                b"aPos\0".as_ptr() as *const gl::types::GLchar,
+            );
+            let texture_coord_attrib = gl.GetAttribLocation(
+                program.get_id(),
+                b"aTexCoord\0".as_ptr() as *const gl::types::GLchar,
+            );
 
-            mesh.vertex_buffer.bind_vao(gl);
-            gl.EnableVertexAttribArray(pos_attrib as GLuint);
-            gl.EnableVertexAttribArray(texture_coord_attrib as GLuint);
-            mesh.vertex_buffer.unbind_vao(gl);
+            gl.EnableVertexArrayAttrib(mesh.vao(), pos_attrib as u32);
+            gl.EnableVertexArrayAttrib(mesh.vao(), texture_coord_attrib as u32);
 
             mesh.vertex_buffer.bind_vbo(gl);
-            mesh.vertex_buffer.set_float_attribute_position(gl, "aPos", program.get_id(), 0, 3, 5);
-            mesh.vertex_buffer.set_float_attribute_position(gl, "aTexCoord", program.get_id(), 3, 2, 5);
+            mesh.vertex_buffer
+                .set_float_attribute_position(gl, "aPos", program.get_id(), 0, 3, 5);
+            mesh.vertex_buffer.set_float_attribute_position(
+                gl,
+                "aTexCoord",
+                program.get_id(),
+                3,
+                2,
+                5,
+            );
             mesh.vertex_buffer.unbind_vbo(gl);
         }
 
