@@ -23,9 +23,7 @@ struct Transform {
 
 pub struct Mesh {
     program: Shader,
-    vao: GLuint,
     vertex_buffer: VertexBuffer,
-    ebo: GLuint,
     transform: Transform,
     fov: f32,
     texture_blend: GLfloat,
@@ -44,23 +42,22 @@ impl VertexBuffer {
             vao: 0,
             ebo: 0,
         };
-        let vbo = &mut vertex_buffer.vbo;
 
         unsafe {
-            gl.GenBuffers(1, vbo);
-            gl.BindBuffer(gl::ARRAY_BUFFER, *vbo);
+            gl.GenBuffers(1, &mut vertex_buffer.vbo);
+
+            vertex_buffer.bind_vbo(gl);
             gl.BufferData(
                 gl::ARRAY_BUFFER,
                 (std::mem::size_of_val(buffer)) as gl::types::GLsizeiptr,
                 buffer.as_ptr() as *const _,
                 gl::STATIC_DRAW,
             );
-            gl.BindBuffer(gl::ARRAY_BUFFER, 0);
+            vertex_buffer.unbind_vbo(gl);
         };
 
         unsafe {
             gl.GenVertexArrays(1, &mut vertex_buffer.vao);
-            gl.BindVertexArray(vertex_buffer.vao);
         };
 
         unsafe {
@@ -83,11 +80,18 @@ impl VertexBuffer {
         vertex_buffer
     }
 
-    pub fn bind(&self, gl: &Gl) {
+    pub fn bind_vbo(&self, gl: &Gl) {
         unsafe { gl.BindBuffer(gl::ARRAY_BUFFER, self.vbo) };
     }
-    pub fn unbind(&self, gl: &Gl) {
+    pub fn unbind_vbo(&self, gl: &Gl) {
         unsafe { gl.BindBuffer(gl::ARRAY_BUFFER, 0) };
+    }
+    pub fn bind_vao(&self, gl: &Gl) {
+        unsafe { gl.BindVertexArray(self.vao) };
+    }
+
+    pub fn unbind_vao(&self, gl: &Gl) {
+        unsafe { gl.BindVertexArray(0) };
     }
     pub fn set_float_attribute_position(
         &self,
@@ -105,6 +109,7 @@ impl VertexBuffer {
                 c_shader_attribute_name.as_ptr() as *const gl::types::GLchar,
             );
 
+            self.bind_vao(gl);
             gl.VertexAttribPointer(
                 attrib as gl::types::GLuint,
                 length as i32,
@@ -113,6 +118,7 @@ impl VertexBuffer {
                 stride as i32 * std::mem::size_of::<f32>() as gl::types::GLsizei,
                 (start as usize * size_of::<f32>()) as *const c_void,
             );
+            self.unbind_vao(gl);
         }
     }
 
@@ -123,11 +129,9 @@ impl VertexBuffer {
 
 impl Mesh {
     pub fn new(gl: &Gl, program: &Shader, translation: Vec3) -> Self {
-        let mut mesh = Mesh {
+        let mesh = Mesh {
             program: program.clone(),
-            vao: 0,
             vertex_buffer: VertexBuffer::new(gl, &VERTEX_DATA),
-            ebo: 0,
             transform: Transform {
                 rotation: get_rand_angle(),
                 translation,
@@ -137,13 +141,7 @@ impl Mesh {
             texture_blend: 0.2,
         };
 
-        unsafe {
-            /* EBO start*/
-
-            /* EBO end */
-
-            Self::point_attributes_to_buffer(gl, &mesh.vertex_buffer, program.get_id());
-        };
+        Self::point_attributes_to_buffer(gl, &mesh.vertex_buffer, program.get_id());
 
         mesh
     }
@@ -201,13 +199,16 @@ impl Mesh {
                 gl.GetAttribLocation(program, b"aPos\0".as_ptr() as *const gl::types::GLchar);
             let texture_coord_attrib =
                 gl.GetAttribLocation(program, b"aTexCoord\0".as_ptr() as *const gl::types::GLchar);
+
+            vbo.bind_vao(gl);
             gl.EnableVertexAttribArray(pos_attrib as GLuint);
             gl.EnableVertexAttribArray(texture_coord_attrib as GLuint);
+            vbo.unbind_vao(gl);
 
-            vbo.bind(gl);
+            vbo.bind_vbo(gl);
             vbo.set_float_attribute_position(gl, "aPos", program, 0, 3, 5);
             vbo.set_float_attribute_position(gl, "aTexCoord", program, 3, 2, 5);
-            vbo.unbind(gl);
+            vbo.unbind_vbo(gl);
         }
     }
 }
