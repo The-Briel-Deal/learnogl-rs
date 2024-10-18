@@ -1,4 +1,7 @@
-use std::{ffi::{CStr, CString}, os::raw::c_void};
+use std::{
+    ffi::{CStr, CString},
+    os::raw::c_void,
+};
 
 use glam::{vec3, Mat4, Vec3};
 
@@ -21,7 +24,7 @@ struct Transform {
 pub struct Mesh {
     program: Shader,
     vao: GLuint,
-    vbo: VertexBuffer,
+    vertex_buffer: VertexBuffer,
     ebo: GLuint,
     transform: Transform,
     fov: f32,
@@ -30,11 +33,17 @@ pub struct Mesh {
 
 struct VertexBuffer {
     vbo: u32,
+    vao: u32,
+    ebo: u32,
 }
 
 impl VertexBuffer {
     pub fn new(gl: &Gl, buffer: &[f32]) -> Self {
-        let mut vertex_buffer = Self { vbo: 0 };
+        let mut vertex_buffer = Self {
+            vbo: 0,
+            vao: 0,
+            ebo: 0,
+        };
         let vbo = &mut vertex_buffer.vbo;
 
         unsafe {
@@ -47,6 +56,28 @@ impl VertexBuffer {
                 gl::STATIC_DRAW,
             );
             gl.BindBuffer(gl::ARRAY_BUFFER, 0);
+        };
+
+        unsafe {
+            gl.GenVertexArrays(1, &mut vertex_buffer.vao);
+            gl.BindVertexArray(vertex_buffer.vao);
+        };
+
+        unsafe {
+            gl.GenBuffers(1, &mut vertex_buffer.ebo);
+            gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, vertex_buffer.ebo);
+
+            let ebo_indicies = [
+                0, 1, 3, // Triangle One
+                1, 2, 3, // Triangle Two
+            ];
+
+            gl.BufferData(
+                gl::ELEMENT_ARRAY_BUFFER,
+                size_of_val(&ebo_indicies) as isize,
+                ebo_indicies.as_ptr() as *const c_void,
+                gl::STATIC_DRAW,
+            );
         };
 
         vertex_buffer
@@ -68,11 +99,11 @@ impl VertexBuffer {
         stride: u32,
     ) {
         unsafe {
-            
-            
             let c_shader_attribute_name = CString::new(shader_attribute_name).unwrap();
-            let attrib =
-                gl.GetAttribLocation(program, c_shader_attribute_name.as_ptr() as *const gl::types::GLchar);
+            let attrib = gl.GetAttribLocation(
+                program,
+                c_shader_attribute_name.as_ptr() as *const gl::types::GLchar,
+            );
 
             gl.VertexAttribPointer(
                 attrib as gl::types::GLuint,
@@ -84,6 +115,10 @@ impl VertexBuffer {
             );
         }
     }
+
+    pub fn vao(&self) -> GLuint {
+        self.vao
+    }
 }
 
 impl Mesh {
@@ -91,7 +126,7 @@ impl Mesh {
         let mut mesh = Mesh {
             program: program.clone(),
             vao: 0,
-            vbo: VertexBuffer::new(gl, &VERTEX_DATA),
+            vertex_buffer: VertexBuffer::new(gl, &VERTEX_DATA),
             ebo: 0,
             transform: Transform {
                 rotation: get_rand_angle(),
@@ -103,32 +138,11 @@ impl Mesh {
         };
 
         unsafe {
-            program
-                .set_float(gl, "textureBlend", mesh.texture_blend)
-                .unwrap();
-
-            gl.GenVertexArrays(1, &mut mesh.vao);
-            gl.BindVertexArray(mesh.vao);
             /* EBO start*/
-
-            gl.GenBuffers(1, &mut mesh.ebo);
-            gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, mesh.ebo);
-
-            let ebo_indicies = [
-                0, 1, 3, // Triangle One
-                1, 2, 3, // Triangle Two
-            ];
-
-            gl.BufferData(
-                gl::ELEMENT_ARRAY_BUFFER,
-                size_of_val(&ebo_indicies) as isize,
-                ebo_indicies.as_ptr() as *const c_void,
-                gl::STATIC_DRAW,
-            );
 
             /* EBO end */
 
-            Self::point_attributes_to_buffer(gl, &mesh.vbo, program.get_id());
+            Self::point_attributes_to_buffer(gl, &mesh.vertex_buffer, program.get_id());
         };
 
         mesh
@@ -150,8 +164,8 @@ impl Mesh {
         self.fov = (self.fov + degrees).clamp(5.0, 80.0);
     }
 
-    pub fn get_vao(&self) -> GLuint {
-        self.vao
+    pub fn vao(&self) -> GLuint {
+        self.vertex_buffer.vao()
     }
 
     pub fn draw(&mut self, gl: &Gl, view_matrix: Mat4) {
@@ -176,7 +190,7 @@ impl Mesh {
             .unwrap();
 
         unsafe {
-            gl.BindVertexArray(self.get_vao());
+            gl.BindVertexArray(self.vao());
             gl.DrawArrays(gl::TRIANGLES, 0, 36);
         }
     }
