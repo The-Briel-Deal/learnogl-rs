@@ -29,11 +29,12 @@ pub struct Mesh {
 struct VertexBuffer {
     vbo: u32,
     vao: u32,
+    bindingindex: u32,
 }
 
 impl VertexBuffer {
     pub fn new(gl: &Gl, buffer: &[f32]) -> Self {
-        let mut vertex_buffer = Self { vbo: 0, vao: 0 };
+        let mut vertex_buffer = Self { vbo: 0, vao: 0, bindingindex: 0 };
 
         unsafe {
             gl.CreateBuffers(1, &mut vertex_buffer.vbo);
@@ -52,7 +53,7 @@ impl VertexBuffer {
             let stride = 5;
             gl.VertexArrayVertexBuffer(
                 vertex_buffer.vao(),
-                0,
+                vertex_buffer.bindingindex,
                 vertex_buffer.vbo(),
                 0,
                 stride * std::mem::size_of::<f32>() as gl::types::GLsizei,
@@ -92,16 +93,16 @@ impl VertexBuffer {
             );
 
 
-            gl.EnableVertexArrayAttrib(self.vao(), attribindex);
+            gl.EnableVertexArrayAttrib(self.vao(), dbg!(attrib) as u32);
             gl.VertexArrayAttribFormat(
                 self.vao(),
-                attribindex,
+                attrib as u32,
                 length as GLint,
                 gl::FLOAT,
                 gl::FALSE,
                 (start as usize * std::mem::size_of::<f32>()) as gl::types::GLuint ,
             );
-            gl.VertexArrayAttribBinding(self.vao(), attribindex, 0);
+            gl.VertexArrayAttribBinding(self.vao(), dbg!(attrib) as u32, self.bindingindex);
         }
     }
 
