@@ -1,10 +1,11 @@
+// TODO: Texture isn't currently being used due to lighting changes.
+#[allow(dead_code)]
 mod texture;
 
-use std::{borrow::Borrow, ffi::CString};
+use std::ffi::CString;
 
 use glam::{vec3, Vec3};
 use glutin::prelude::GlDisplay;
-use texture::TextureManager;
 use winit::keyboard::KeyCode;
 
 use crate::{
@@ -58,7 +59,6 @@ impl Renderer {
         );
 
         let mut light_source = Mesh::new(
-            gl.borrow(),
             &light_source_program,
             vec3(0.0, 2.0, 0.0),
             light_vertex_buffer,
@@ -82,12 +82,7 @@ impl Renderer {
                 3,
                 3,
             );
-            Mesh::new(
-                gl.borrow(),
-                &lit_object_program,
-                pos,
-                lit_object_vertex_buffer,
-            )
+            Mesh::new(&lit_object_program, pos, lit_object_vertex_buffer)
         }));
 
         lit_object_program

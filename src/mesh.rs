@@ -106,7 +106,7 @@ impl VertexBuffer {
 }
 
 impl Mesh {
-    pub fn new(gl: &Gl, program: &Shader, translation: Vec3, vertex_buffer: VertexBuffer) -> Self {
+    pub fn new(program: &Shader, translation: Vec3, vertex_buffer: VertexBuffer) -> Self {
         Mesh {
             program: program.clone(),
             vertex_buffer,
