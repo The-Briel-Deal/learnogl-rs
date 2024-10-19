@@ -16,6 +16,7 @@ pub trait ShaderTrait {
     fn set_int(&self, gl: &Gl, name: &str, val: i32) -> Result<(), String>;
     fn set_float(&self, gl: &Gl, name: &str, val: f32) -> Result<(), String>;
     fn set_vec2(&self, gl: &Gl, name: &str, val: (f32, f32)) -> Result<(), String>;
+    fn set_vec3(&self, gl: &Gl, name: &str, val: (f32, f32, f32)) -> Result<(), String>;
     fn set_mat4(&self, gl: &Gl, name: &str, val: Mat4) -> Result<(), String>;
 }
 
@@ -82,6 +83,18 @@ impl ShaderTrait for Shader {
                 self.enable(gl);
                 unsafe {
                     gl.Uniform2f(id, val.0, val.1);
+                }
+                Ok(())
+            }
+            Err(err) => Err(err),
+        }
+    }
+    fn set_vec3(&self, gl: &Gl, name: &str, val: (f32, f32, f32)) -> Result<(), String> {
+        match self.get_uniform_id(gl, name) {
+            Ok(id) => {
+                self.enable(gl);
+                unsafe {
+                    gl.Uniform3f(id, val.0, val.1, val.2);
                 }
                 Ok(())
             }

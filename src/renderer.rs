@@ -37,7 +37,9 @@ impl Renderer {
 
         let program = Shader::new(&gl, "src/shader/vert.glsl", "src/shader/frag.glsl");
         let light_source_program =
-            Shader::new(&gl, "src/shader/light_vert.glsl", "src/shader/frag.glsl");
+            Shader::new(&gl, "src/shader/light_vert.glsl", "src/shader/light_frag.glsl");
+        light_source_program.set_vec3(&gl, "objectColor", (1.0, 0.5, 0.31)).unwrap();
+        light_source_program.set_vec3(&gl, "lightColor", (1.0, 1.0, 1.0)).unwrap();
 
         let mut textures = TextureManager::new();
         textures.create_texture(&gl, "container", "static/container.jpg", &program, 0);
