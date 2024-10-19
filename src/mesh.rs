@@ -173,7 +173,6 @@ impl Mesh {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use glam::{vec3, vec4, Mat4};
