@@ -16,6 +16,7 @@ use crate::{
 };
 
 const AMBIENT_LIGHTING_CONSTANT: f32 = 0.1;
+const SPECULAR_STRENGTH_CONSTANT: f32 = 0.5;
 
 type PositionDelta2D = (f64, f64);
 
@@ -47,33 +48,6 @@ impl Renderer {
             "src/shader/lit_object_frag.glsl",
         );
 
-        lit_object_program
-            .set_vec3(&gl, "objectColor", (1.0, 0.5, 0.31))
-            .unwrap();
-        lit_object_program
-            .set_vec3(&gl, "lightColor", (1.0, 1.0, 1.0))
-            .unwrap();
-        lit_object_program
-            .set_float(&gl, "ambientLightConstant", AMBIENT_LIGHTING_CONSTANT)
-            .unwrap();
-
-        let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
-            let lit_object_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA, VERTEX_DATA_STRIDE);
-            lit_object_vertex_buffer.set_float_attribute_position(
-                &gl,
-                "aPos",
-                lit_object_program.get_id(),
-                0,
-                3,
-            );
-            Mesh::new(
-                gl.borrow(),
-                &lit_object_program,
-                pos,
-                lit_object_vertex_buffer,
-            )
-        }));
-
         let light_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA, VERTEX_DATA_STRIDE);
         light_vertex_buffer.set_float_attribute_position(
             &gl,
@@ -91,12 +65,57 @@ impl Renderer {
         );
 
         light_source.adjust_scale(vec3(0.2, 0.2, 0.2));
+        let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
+            let lit_object_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA, VERTEX_DATA_STRIDE);
+
+            lit_object_vertex_buffer.set_float_attribute_position(
+                &gl,
+                "aPos",
+                lit_object_program.get_id(),
+                0,
+                3,
+            );
+            lit_object_vertex_buffer.set_float_attribute_position(
+                &gl,
+                "aNormal",
+                lit_object_program.get_id(),
+                3,
+                3,
+            );
+            Mesh::new(
+                gl.borrow(),
+                &lit_object_program,
+                pos,
+                lit_object_vertex_buffer,
+            )
+        }));
+
+        lit_object_program
+            .set_vec3(&gl, "objectColor", (1.0, 0.5, 0.31))
+            .unwrap();
+        lit_object_program
+            .set_vec3(&gl, "lightColor", (1.0, 1.0, 1.0))
+            .unwrap();
+        lit_object_program
+            .set_float(&gl, "ambientLightConstant", AMBIENT_LIGHTING_CONSTANT)
+            .unwrap();
+
+        lit_object_program
+            .set_vec3(&gl, "lightPos", light_source.pos().into())
+            .unwrap();
+        let camera = Camera::new();
+        lit_object_program
+            .set_vec3(&gl, "viewPos", camera.pos().into())
+            .unwrap();
+        lit_object_program
+            .set_float(&gl, "specularStrength", SPECULAR_STRENGTH_CONSTANT)
+            .unwrap();
 
         Self {
             light_source,
             lit_objects,
             gl,
-            camera: Camera::new(),
+            camera,
         }
     }
 

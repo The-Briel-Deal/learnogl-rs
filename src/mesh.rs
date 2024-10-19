@@ -80,6 +80,9 @@ impl VertexBuffer {
                 program,
                 c_shader_attribute_name.as_ptr() as *const gl::types::GLchar,
             );
+            if attrib == -1 {
+                panic!("Attribute not found!")
+            }
 
             gl.EnableVertexArrayAttrib(self.vao(), dbg!(attrib) as u32);
             gl.VertexArrayAttribFormat(
@@ -104,7 +107,7 @@ impl VertexBuffer {
 
 impl Mesh {
     pub fn new(gl: &Gl, program: &Shader, translation: Vec3, vertex_buffer: VertexBuffer) -> Self {
-        let mesh = Mesh {
+        Mesh {
             program: program.clone(),
             vertex_buffer,
             transform: Transform {
@@ -114,14 +117,7 @@ impl Mesh {
             },
             fov: 80.0,
             texture_blend: 0.2,
-        };
-
-        mesh.vertex_buffer
-            .set_float_attribute_position(gl, "aPos", program.get_id(), 0, 3);
-        mesh.vertex_buffer
-            .set_float_attribute_position(gl, "aTexCoord", program.get_id(), 3, 2);
-
-        mesh
+        }
     }
 
     pub fn adjust_blend(&mut self, percent: f32) {
