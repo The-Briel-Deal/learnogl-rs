@@ -48,6 +48,15 @@ impl VertexBuffer {
 
         unsafe {
             gl.CreateVertexArrays(1, &mut vertex_buffer.vao);
+
+            let stride = 5;
+            gl.VertexArrayVertexBuffer(
+                vertex_buffer.vao(),
+                0,
+                vertex_buffer.vbo(),
+                0,
+                stride * std::mem::size_of::<f32>() as gl::types::GLsizei,
+            );
         };
 
         vertex_buffer
@@ -73,7 +82,7 @@ impl VertexBuffer {
         program: u32,
         start: u32,
         length: u32,
-        stride: u32,
+        attribindex: u32,
     ) {
         unsafe {
             let c_shader_attribute_name = CString::new(shader_attribute_name).unwrap();
@@ -82,27 +91,17 @@ impl VertexBuffer {
                 c_shader_attribute_name.as_ptr() as *const gl::types::GLchar,
             );
 
-            self.bind_vao(gl);
 
-            gl.EnableVertexArrayAttrib(self.vao(), attrib as u32);
+            gl.EnableVertexArrayAttrib(self.vao(), attribindex);
             gl.VertexArrayAttribFormat(
                 self.vao(),
-                attrib as GLuint,
+                attribindex,
                 length as GLint,
                 gl::FLOAT,
                 gl::FALSE,
-                start,
+                (start as usize * std::mem::size_of::<f32>()) as gl::types::GLuint ,
             );
-            gl.VertexArrayAttribBinding(self.vao(), attrib as u32, self.vbo());
-            gl.VertexAttribPointer(
-                attrib as gl::types::GLuint,
-                length as i32,
-                gl::FLOAT,
-                gl::FALSE,
-                stride as i32 * std::mem::size_of::<f32>() as gl::types::GLsizei,
-                (start as usize * size_of::<f32>()) as *const c_void,
-            );
-            self.unbind_vao(gl);
+            gl.VertexArrayAttribBinding(self.vao(), attribindex, 0);
         }
     }
 
@@ -128,12 +127,10 @@ impl Mesh {
             texture_blend: 0.2,
         };
 
-        mesh.vertex_buffer.bind_vbo(gl);
         mesh.vertex_buffer
-            .set_float_attribute_position(gl, "aPos", program.get_id(), 0, 3, 5);
+            .set_float_attribute_position(gl, "aPos", program.get_id(), 0, 3, 0);
         mesh.vertex_buffer
-            .set_float_attribute_position(gl, "aTexCoord", program.get_id(), 3, 2, 5);
-        mesh.vertex_buffer.unbind_vbo(gl);
+            .set_float_attribute_position(gl, "aTexCoord", program.get_id(), 3, 2, 1);
 
         mesh
     }
