@@ -5,7 +5,7 @@ use glam::{vec3, Mat4, Vec3};
 use crate::{
     gl::{
         self,
-        types::{GLfloat, GLuint},
+        types::{GLfloat, GLint, GLuint},
         Gl,
     },
     helper::get_rand_angle,
@@ -83,6 +83,17 @@ impl VertexBuffer {
             );
 
             self.bind_vao(gl);
+
+            gl.EnableVertexArrayAttrib(self.vao(), attrib as u32);
+            gl.VertexArrayAttribFormat(
+                self.vao(),
+                attrib as GLuint,
+                length as GLint,
+                gl::FLOAT,
+                gl::FALSE,
+                start,
+            );
+            gl.VertexArrayAttribBinding(self.vao(), attrib as u32, self.vbo());
             gl.VertexAttribPointer(
                 attrib as gl::types::GLuint,
                 length as i32,
@@ -95,6 +106,9 @@ impl VertexBuffer {
         }
     }
 
+    pub fn vbo(&self) -> GLuint {
+        self.vbo
+    }
     pub fn vao(&self) -> GLuint {
         self.vao
     }
@@ -114,32 +128,12 @@ impl Mesh {
             texture_blend: 0.2,
         };
 
-        unsafe {
-            let pos_attrib = gl.GetAttribLocation(
-                program.get_id(),
-                b"aPos\0".as_ptr() as *const gl::types::GLchar,
-            );
-            let texture_coord_attrib = gl.GetAttribLocation(
-                program.get_id(),
-                b"aTexCoord\0".as_ptr() as *const gl::types::GLchar,
-            );
-
-            gl.EnableVertexArrayAttrib(mesh.vao(), pos_attrib as u32);
-            gl.EnableVertexArrayAttrib(mesh.vao(), texture_coord_attrib as u32);
-
-            mesh.vertex_buffer.bind_vbo(gl);
-            mesh.vertex_buffer
-                .set_float_attribute_position(gl, "aPos", program.get_id(), 0, 3, 5);
-            mesh.vertex_buffer.set_float_attribute_position(
-                gl,
-                "aTexCoord",
-                program.get_id(),
-                3,
-                2,
-                5,
-            );
-            mesh.vertex_buffer.unbind_vbo(gl);
-        }
+        mesh.vertex_buffer.bind_vbo(gl);
+        mesh.vertex_buffer
+            .set_float_attribute_position(gl, "aPos", program.get_id(), 0, 3, 5);
+        mesh.vertex_buffer
+            .set_float_attribute_position(gl, "aTexCoord", program.get_id(), 3, 2, 5);
+        mesh.vertex_buffer.unbind_vbo(gl);
 
         mesh
     }

@@ -58,11 +58,11 @@ impl Renderer {
         ];
         let mut mesh_list =
             Vec::from(cube_positions.map(|pos| Mesh::new(gl.borrow(), &program, pos)));
-        mesh_list.push(Mesh::new(
-            gl.borrow(),
-            &light_source_program,
-            vec3(0.0, 2.0, 0.0),
-        ));
+//        mesh_list.push(Mesh::new(
+//            gl.borrow(),
+//            &light_source_program,
+//            vec3(0.0, 2.0, 0.0),
+//        ));
 
         Self {
             program,
