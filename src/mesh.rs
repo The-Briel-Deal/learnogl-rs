@@ -1,4 +1,4 @@
-use std::{ffi::CString, os::raw::c_void};
+use std::ffi::CString;
 
 use glam::{vec3, Mat4, Vec3};
 
@@ -34,7 +34,11 @@ struct VertexBuffer {
 
 impl VertexBuffer {
     pub fn new(gl: &Gl, buffer: &[f32]) -> Self {
-        let mut vertex_buffer = Self { vbo: 0, vao: 0, bindingindex: 0 };
+        let mut vertex_buffer = Self {
+            vbo: 0,
+            vao: 0,
+            bindingindex: 0,
+        };
 
         unsafe {
             gl.CreateBuffers(1, &mut vertex_buffer.vbo);
@@ -63,19 +67,6 @@ impl VertexBuffer {
         vertex_buffer
     }
 
-    pub fn bind_vbo(&self, gl: &Gl) {
-        unsafe { gl.BindBuffer(gl::ARRAY_BUFFER, self.vbo) };
-    }
-    pub fn unbind_vbo(&self, gl: &Gl) {
-        unsafe { gl.BindBuffer(gl::ARRAY_BUFFER, 0) };
-    }
-    pub fn bind_vao(&self, gl: &Gl) {
-        unsafe { gl.BindVertexArray(self.vao) };
-    }
-
-    pub fn unbind_vao(&self, gl: &Gl) {
-        unsafe { gl.BindVertexArray(0) };
-    }
     pub fn set_float_attribute_position(
         &self,
         gl: &Gl,
@@ -83,7 +74,6 @@ impl VertexBuffer {
         program: u32,
         start: u32,
         length: u32,
-        attribindex: u32,
     ) {
         unsafe {
             let c_shader_attribute_name = CString::new(shader_attribute_name).unwrap();
@@ -92,7 +82,6 @@ impl VertexBuffer {
                 c_shader_attribute_name.as_ptr() as *const gl::types::GLchar,
             );
 
-
             gl.EnableVertexArrayAttrib(self.vao(), dbg!(attrib) as u32);
             gl.VertexArrayAttribFormat(
                 self.vao(),
@@ -100,7 +89,7 @@ impl VertexBuffer {
                 length as GLint,
                 gl::FLOAT,
                 gl::FALSE,
-                (start as usize * std::mem::size_of::<f32>()) as gl::types::GLuint ,
+                (start as usize * std::mem::size_of::<f32>()) as gl::types::GLuint,
             );
             gl.VertexArrayAttribBinding(self.vao(), dbg!(attrib) as u32, self.bindingindex);
         }
@@ -129,9 +118,9 @@ impl Mesh {
         };
 
         mesh.vertex_buffer
-            .set_float_attribute_position(gl, "aPos", program.get_id(), 0, 3, 0);
+            .set_float_attribute_position(gl, "aPos", program.get_id(), 0, 3);
         mesh.vertex_buffer
-            .set_float_attribute_position(gl, "aTexCoord", program.get_id(), 3, 2, 1);
+            .set_float_attribute_position(gl, "aTexCoord", program.get_id(), 3, 2);
 
         mesh
     }
