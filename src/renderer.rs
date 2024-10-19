@@ -15,10 +15,13 @@ use crate::{
     shader::{Shader, ShaderTrait},
 };
 
+const AMBIENT_LIGHTING_CONSTANT: f32 = 0.1;
+
 type PositionDelta2D = (f64, f64);
 
 pub struct Renderer {
-    pub mesh_list: Vec<Mesh>,
+    light_source: Mesh,
+    lit_objects: Vec<Mesh>,
     camera: Camera,
     gl: Gl,
 }
@@ -50,27 +53,12 @@ impl Renderer {
         lit_object_program
             .set_vec3(&gl, "lightColor", (1.0, 1.0, 1.0))
             .unwrap();
+        lit_object_program
+            .set_float(&gl, "ambientLightConstant", AMBIENT_LIGHTING_CONSTANT)
+            .unwrap();
 
-        /* No Textures in lighting section */
-        // let mut textures = TextureManager::new();
-        // textures.create_texture(&gl, "container", "static/container.jpg", &program, 0);
-        // textures.create_texture(&gl, "awesomeface", "static/awesomeface.png", &program, 1);
-
-        #[rustfmt::skip]
-        let cube_positions = [
-            vec3( 0.0,  0.0,  0.0),
-            vec3( 2.0,  5.0, -15.0),
-            vec3(-1.5, -2.2, -2.5),
-            vec3(-3.8, -2.0, -12.3),
-            vec3( 2.4, -0.4, -3.5),
-            vec3(-1.7,  3.0, -7.5),
-            vec3( 1.3, -2.0, -2.5),
-            vec3( 1.5,  2.0, -2.5),
-            vec3( 1.5,  0.2, -1.5),
-            vec3(-1.3,  1.0, -1.5)
-        ];
-        let mut mesh_list = Vec::from(cube_positions.map(|pos| {
-            let lit_object_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA);
+        let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
+            let lit_object_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA, VERTEX_DATA_STRIDE);
             lit_object_vertex_buffer.set_float_attribute_position(
                 &gl,
                 "aPos",
@@ -86,7 +74,7 @@ impl Renderer {
             )
         }));
 
-        let light_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA);
+        let light_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA, VERTEX_DATA_STRIDE);
         light_vertex_buffer.set_float_attribute_position(
             &gl,
             "aPos",
@@ -104,10 +92,9 @@ impl Renderer {
 
         light_source.adjust_scale(vec3(0.2, 0.2, 0.2));
 
-        mesh_list.push(light_source);
-
         Self {
-            mesh_list,
+            light_source,
+            lit_objects,
             gl,
             camera: Camera::new(),
         }
@@ -117,7 +104,7 @@ impl Renderer {
         self.camera.handle_movement(keys, delta_time);
     }
     pub fn handle_texture_blends_keys(&mut self, keys: Vec<KeyCode>) {
-        let mesh_list = &mut self.mesh_list;
+        let mesh_list = &mut self.lit_objects;
         keys.iter().for_each(|key| match key {
             KeyCode::KeyJ => mesh_list
                 .iter_mut()
@@ -139,7 +126,7 @@ impl Renderer {
     }
 
     pub fn adjust_zoom(&mut self, degrees: GLfloat) {
-        for mesh in &mut self.mesh_list {
+        for mesh in &mut self.lit_objects {
             mesh.adjust_zoom(degrees);
         }
     }
@@ -158,62 +145,72 @@ impl Renderer {
         unsafe {
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-            // self.program.enable(&self.gl);
-            for mesh in &mut self.mesh_list {
-                //self.program
-                //    .set_float(&self.gl, "textureBlend", mesh.blend())
-                //    .unwrap();
-                /* Bind Textures */
-                // self.textures.bind_texture(&self.gl, "awesomeface", 0);
-                // self.textures.bind_texture(&self.gl, "container", 1);
-                mesh.draw(&self.gl, self.camera.view_matrix())
+            self.light_source.draw(&self.gl, self.camera.view_matrix());
+
+            for lit_object in &mut self.lit_objects {
+                lit_object.draw(&self.gl, self.camera.view_matrix())
             }
         }
     }
 }
 
 #[rustfmt::skip]
-static VERTEX_DATA: [f32; 180] = [
-    // Vertices                      // Texture Coords
-    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 0.0_f32,
-     0.5_f32, -0.5_f32, -0.5_f32,    1.0_f32, 0.0_f32,
-     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
-     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
-    -0.5_f32,  0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
-    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 0.0_f32,
-
-    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
-     0.5_f32, -0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
-     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 1.0_f32,
-     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 1.0_f32,
-    -0.5_f32,  0.5_f32,  0.5_f32,    0.0_f32, 1.0_f32,
-    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
-
-    -0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
-    -0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
-    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
-    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
-    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
-    -0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
-
-     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
-     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
-     0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
-     0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
-     0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
-     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
-
-    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
-     0.5_f32, -0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
-     0.5_f32, -0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
-     0.5_f32, -0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
-    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
-    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
-
-    -0.5_f32,  0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
-     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
-     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
-     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
-    -0.5_f32,  0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
-    -0.5_f32,  0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32
+static LIT_CUBE_POSITIONS: [Vec3; 10] = [
+    vec3( 0.0,  0.0,  0.0),
+    vec3( 2.0,  5.0, -15.0),
+    vec3(-1.5, -2.2, -2.5),
+    vec3(-3.8, -2.0, -12.3),
+    vec3( 2.4, -0.4, -3.5),
+    vec3(-1.7,  3.0, -7.5),
+    vec3( 1.3, -2.0, -2.5),
+    vec3( 1.5,  2.0, -2.5),
+    vec3( 1.5,  0.2, -1.5),
+    vec3(-1.3,  1.0, -1.5)
 ];
+
+const VERTEX_DATA_STRIDE: i32 = 6;
+
+#[rustfmt::skip]
+static VERTEX_DATA: [f32; 216] = [
+    /* Vertex Pos */    /* Face Normal */
+    -0.5, -0.5, -0.5,    0.0,  0.0, -1.0,
+     0.5, -0.5, -0.5,    0.0,  0.0, -1.0, 
+     0.5,  0.5, -0.5,    0.0,  0.0, -1.0, 
+     0.5,  0.5, -0.5,    0.0,  0.0, -1.0, 
+    -0.5,  0.5, -0.5,    0.0,  0.0, -1.0, 
+    -0.5, -0.5, -0.5,    0.0,  0.0, -1.0, 
+
+    -0.5, -0.5,  0.5,    0.0,  0.0, 1.0,
+     0.5, -0.5,  0.5,    0.0,  0.0, 1.0,
+     0.5,  0.5,  0.5,    0.0,  0.0, 1.0,
+     0.5,  0.5,  0.5,    0.0,  0.0, 1.0,
+    -0.5,  0.5,  0.5,    0.0,  0.0, 1.0,
+    -0.5, -0.5,  0.5,    0.0,  0.0, 1.0,
+
+    -0.5,  0.5,  0.5,   -1.0,  0.0,  0.0,
+    -0.5,  0.5, -0.5,   -1.0,  0.0,  0.0,
+    -0.5, -0.5, -0.5,   -1.0,  0.0,  0.0,
+    -0.5, -0.5, -0.5,   -1.0,  0.0,  0.0,
+    -0.5, -0.5,  0.5,   -1.0,  0.0,  0.0,
+    -0.5,  0.5,  0.5,   -1.0,  0.0,  0.0,
+
+     0.5,  0.5,  0.5,    1.0,  0.0,  0.0,
+     0.5,  0.5, -0.5,    1.0,  0.0,  0.0,
+     0.5, -0.5, -0.5,    1.0,  0.0,  0.0,
+     0.5, -0.5, -0.5,    1.0,  0.0,  0.0,
+     0.5, -0.5,  0.5,    1.0,  0.0,  0.0,
+     0.5,  0.5,  0.5,    1.0,  0.0,  0.0,
+
+    -0.5, -0.5, -0.5,    0.0, -1.0,  0.0,
+     0.5, -0.5, -0.5,    0.0, -1.0,  0.0,
+     0.5, -0.5,  0.5,    0.0, -1.0,  0.0,
+     0.5, -0.5,  0.5,    0.0, -1.0,  0.0,
+    -0.5, -0.5,  0.5,    0.0, -1.0,  0.0,
+    -0.5, -0.5, -0.5,    0.0, -1.0,  0.0,
+
+    -0.5,  0.5, -0.5,    0.0,  1.0,  0.0,
+     0.5,  0.5, -0.5,    0.0,  1.0,  0.0,
+     0.5,  0.5,  0.5,    0.0,  1.0,  0.0,
+     0.5,  0.5,  0.5,    0.0,  1.0,  0.0,
+    -0.5,  0.5,  0.5,    0.0,  1.0,  0.0,
+    -0.5,  0.5, -0.5,    0.0,  1.0,  0.0];

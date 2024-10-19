@@ -33,7 +33,7 @@ pub struct VertexBuffer {
 }
 
 impl VertexBuffer {
-    pub fn new(gl: &Gl, buffer: &[f32]) -> Self {
+    pub fn new(gl: &Gl, buffer: &[f32], stride: i32) -> Self {
         let mut vertex_buffer = Self {
             vbo: 0,
             vao: 0,
@@ -54,7 +54,6 @@ impl VertexBuffer {
         unsafe {
             gl.CreateVertexArrays(1, &mut vertex_buffer.vao);
 
-            let stride = 5;
             gl.VertexArrayVertexBuffer(
                 vertex_buffer.vao(),
                 vertex_buffer.bindingindex,
@@ -144,6 +143,10 @@ impl Mesh {
     pub fn adjust_scale(&mut self, scale: Vec3) {
         self.transform.scale =
             (self.transform.scale * scale).clamp(vec3(0.1, 0.1, 0.1), vec3(10.0, 10.0, 10.0));
+    }
+
+    pub fn pos(&self) -> Vec3 {
+        self.transform.translation
     }
 
     pub fn vao(&self) -> GLuint {
