@@ -11,7 +11,7 @@ use crate::{
     camera::Camera,
     gl::{self, types::GLfloat, Gl},
     logging::setup_logging,
-    mesh::Mesh,
+    mesh::{Mesh, VertexBuffer},
     shader::{Shader, ShaderTrait},
 };
 
@@ -56,12 +56,21 @@ impl Renderer {
             vec3( 1.5,  0.2, -1.5),
             vec3(-1.3,  1.0, -1.5)
         ];
-        let mesh_list = Vec::from(cube_positions.map(|pos| Mesh::new(gl.borrow(), &program, pos)));
-        //        mesh_list.push(Mesh::new(
-        //            gl.borrow(),
-        //            &light_source_program,
-        //            vec3(0.0, 2.0, 0.0),
-        //        ));
+        let mut mesh_list = Vec::from(cube_positions.map(|pos| {
+            let vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA);
+            vertex_buffer.set_float_attribute_position(&gl, "aPos", program.get_id(), 0, 3);
+            vertex_buffer.set_float_attribute_position(&gl, "aTexCoord", program.get_id(), 3, 2);
+            Mesh::new(gl.borrow(), &program, pos, vertex_buffer)
+        }));
+
+        let light_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA);
+        light_vertex_buffer.set_float_attribute_position(&gl, "aPos", program.get_id(), 0, 3);
+        mesh_list.push(Mesh::new(
+            gl.borrow(),
+            &light_source_program,
+            vec3(0.0, 2.0, 0.0),
+            light_vertex_buffer,
+        ));
 
         Self {
             program,
@@ -130,3 +139,49 @@ impl Renderer {
         }
     }
 }
+
+#[rustfmt::skip]
+static VERTEX_DATA: [f32; 180] = [
+    // Vertices                      // Texture Coords
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 0.0_f32,
+     0.5_f32, -0.5_f32, -0.5_f32,    1.0_f32, 0.0_f32,
+     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+    -0.5_f32,  0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 0.0_f32,
+
+    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+     0.5_f32, -0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 1.0_f32,
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 1.0_f32,
+    -0.5_f32,  0.5_f32,  0.5_f32,    0.0_f32, 1.0_f32,
+    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+
+    -0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+    -0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+    -0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+     0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+     0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+     0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+     0.5_f32, -0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+     0.5_f32, -0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+     0.5_f32, -0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+    -0.5_f32, -0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+    -0.5_f32, -0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+
+    -0.5_f32,  0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32,
+     0.5_f32,  0.5_f32, -0.5_f32,    1.0_f32, 1.0_f32,
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+     0.5_f32,  0.5_f32,  0.5_f32,    1.0_f32, 0.0_f32,
+    -0.5_f32,  0.5_f32,  0.5_f32,    0.0_f32, 0.0_f32,
+    -0.5_f32,  0.5_f32, -0.5_f32,    0.0_f32, 1.0_f32
+];
