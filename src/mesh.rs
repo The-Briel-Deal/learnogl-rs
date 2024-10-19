@@ -141,6 +141,11 @@ impl Mesh {
         self.fov = (self.fov + degrees).clamp(5.0, 80.0);
     }
 
+    pub fn adjust_scale(&mut self, scale: Vec3) {
+        self.transform.scale =
+            (self.transform.scale * scale).clamp(vec3(0.1, 0.1, 0.1), vec3(10.0, 10.0, 10.0));
+    }
+
     pub fn vao(&self) -> GLuint {
         self.vertex_buffer.vao()
     }

@@ -2,7 +2,7 @@ mod texture;
 
 use std::{borrow::Borrow, ffi::CString};
 
-use glam::vec3;
+use glam::{vec3, Vec3};
 use glutin::prelude::GlDisplay;
 use texture::TextureManager;
 use winit::keyboard::KeyCode;
@@ -18,8 +18,6 @@ use crate::{
 type PositionDelta2D = (f64, f64);
 
 pub struct Renderer {
-    program: Shader,
-    textures: TextureManager,
     pub mesh_list: Vec<Mesh>,
     camera: Camera,
     gl: Gl,
@@ -35,15 +33,28 @@ impl Renderer {
         unsafe { gl.Enable(gl::DEPTH_TEST) };
         setup_logging(&gl);
 
-        let program = Shader::new(&gl, "src/shader/vert.glsl", "src/shader/frag.glsl");
-        let light_source_program =
-            Shader::new(&gl, "src/shader/light_vert.glsl", "src/shader/light_frag.glsl");
-        light_source_program.set_vec3(&gl, "objectColor", (1.0, 0.5, 0.31)).unwrap();
-        light_source_program.set_vec3(&gl, "lightColor", (1.0, 1.0, 1.0)).unwrap();
+        let light_source_program = Shader::new(
+            &gl,
+            "src/shader/light_vert.glsl",
+            "src/shader/light_source_frag.glsl",
+        );
+        let lit_object_program = Shader::new(
+            &gl,
+            "src/shader/light_vert.glsl",
+            "src/shader/lit_object_frag.glsl",
+        );
 
-        let mut textures = TextureManager::new();
-        textures.create_texture(&gl, "container", "static/container.jpg", &program, 0);
-        textures.create_texture(&gl, "awesomeface", "static/awesomeface.png", &program, 1);
+        lit_object_program
+            .set_vec3(&gl, "objectColor", (1.0, 0.5, 0.31))
+            .unwrap();
+        lit_object_program
+            .set_vec3(&gl, "lightColor", (1.0, 1.0, 1.0))
+            .unwrap();
+
+        /* No Textures in lighting section */
+        // let mut textures = TextureManager::new();
+        // textures.create_texture(&gl, "container", "static/container.jpg", &program, 0);
+        // textures.create_texture(&gl, "awesomeface", "static/awesomeface.png", &program, 1);
 
         #[rustfmt::skip]
         let cube_positions = [
@@ -59,24 +70,43 @@ impl Renderer {
             vec3(-1.3,  1.0, -1.5)
         ];
         let mut mesh_list = Vec::from(cube_positions.map(|pos| {
-            let vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA);
-            vertex_buffer.set_float_attribute_position(&gl, "aPos", program.get_id(), 0, 3);
-            vertex_buffer.set_float_attribute_position(&gl, "aTexCoord", program.get_id(), 3, 2);
-            Mesh::new(gl.borrow(), &program, pos, vertex_buffer)
+            let lit_object_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA);
+            lit_object_vertex_buffer.set_float_attribute_position(
+                &gl,
+                "aPos",
+                lit_object_program.get_id(),
+                0,
+                3,
+            );
+            Mesh::new(
+                gl.borrow(),
+                &lit_object_program,
+                pos,
+                lit_object_vertex_buffer,
+            )
         }));
 
         let light_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA);
-        light_vertex_buffer.set_float_attribute_position(&gl, "aPos", program.get_id(), 0, 3);
-        mesh_list.push(Mesh::new(
+        light_vertex_buffer.set_float_attribute_position(
+            &gl,
+            "aPos",
+            light_source_program.get_id(),
+            0,
+            3,
+        );
+
+        let mut light_source = Mesh::new(
             gl.borrow(),
             &light_source_program,
             vec3(0.0, 2.0, 0.0),
             light_vertex_buffer,
-        ));
+        );
+
+        light_source.adjust_scale(vec3(0.2, 0.2, 0.2));
+
+        mesh_list.push(light_source);
 
         Self {
-            program,
-            textures,
             mesh_list,
             gl,
             camera: Camera::new(),
@@ -128,14 +158,14 @@ impl Renderer {
         unsafe {
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-            self.program.enable(&self.gl);
+            // self.program.enable(&self.gl);
             for mesh in &mut self.mesh_list {
-                self.program
-                    .set_float(&self.gl, "textureBlend", mesh.blend())
-                    .unwrap();
+                //self.program
+                //    .set_float(&self.gl, "textureBlend", mesh.blend())
+                //    .unwrap();
                 /* Bind Textures */
-                self.textures.bind_texture(&self.gl, "awesomeface", 0);
-                self.textures.bind_texture(&self.gl, "container", 1);
+                // self.textures.bind_texture(&self.gl, "awesomeface", 0);
+                // self.textures.bind_texture(&self.gl, "container", 1);
                 mesh.draw(&self.gl, self.camera.view_matrix())
             }
         }
