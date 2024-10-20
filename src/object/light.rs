@@ -15,11 +15,11 @@ const DIFFUSE_STRENGTH_DEFAULT: Vec3 = vec3(0.5, 0.5, 0.5);
 const SPECULAR_STRENGTH_DEFAULT: Vec3 = vec3(1.0, 1.0, 1.0);
 
 pub struct LightAttributes {
-    position: Vec3,
+    pub position: Vec3,
     // Strength of each type of lighting
-    ambient: Vec3,
-    diffuse: Vec3,
-    specular: Vec3,
+    pub ambient: Vec3,
+    pub diffuse: Vec3,
+    pub specular: Vec3,
 }
 
 pub struct Light {

@@ -80,7 +80,7 @@ impl VertexBuffer {
                 c_shader_attribute_name.as_ptr() as *const gl::types::GLchar,
             );
             if attrib == -1 {
-                panic!("Attribute not found! Attribute Name: {attrib}")
+                panic!("\nAttribute not found! Attribute Name: {shader_attribute_name}\n")
             }
 
             gl.EnableVertexArrayAttrib(self.vao(), attrib as u32);

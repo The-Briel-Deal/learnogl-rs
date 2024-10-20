@@ -5,6 +5,7 @@ use glam::{vec3, Mat4, Vec3};
 use crate::{
     gl::{types::GLfloat, Gl},
     mesh::{Mesh, VertexBuffer},
+    renderer::texture::TextureManager,
     shader::{Shader, ShaderTrait},
 };
 
@@ -37,6 +38,22 @@ impl Cube {
 
         lit_object_vertex_buffer.set_float_attribute_position(gl, "aPos", shader.get_id(), 0, 3);
         lit_object_vertex_buffer.set_float_attribute_position(gl, "aNormal", shader.get_id(), 3, 3);
+        lit_object_vertex_buffer.set_float_attribute_position(
+            gl,
+            "aTexCoords",
+            shader.get_id(),
+            6,
+            2,
+        );
+
+        let mut texture_manager = TextureManager::new();
+        texture_manager.create_texture(
+            gl,
+            "material.diffuse",
+            "static/diffuse_container.png",
+            &shader,
+            0,
+        );
         Self {
             mesh: Mesh::new(pos, lit_object_vertex_buffer),
             shader,
@@ -60,12 +77,6 @@ impl Cube {
     }
 
     fn update_material_uniforms(&self, gl: &Gl) {
-        self.shader
-            .set_vec3(gl, "material.ambient", self.material.ambient.into())
-            .unwrap();
-        self.shader
-            .set_vec3(gl, "material.diffuse", self.material.diffuse.into())
-            .unwrap();
         self.shader
             .set_vec3(gl, "material.specular", self.material.specular.into())
             .unwrap();
