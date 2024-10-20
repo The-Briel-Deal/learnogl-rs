@@ -17,13 +17,7 @@ use crate::{
     timer::Timer,
 };
 
-const LIGHT_SOURCE_POSITION_DEFAULT: Vec3 = vec3(0.0, 2.0, 0.0);
-
-const AMBIENT_DEFAULT: (f32, f32, f32) = (1.0, 0.5, 0.31);
-const DIFFUSE_DEFAULT: (f32, f32, f32) = (1.0, 0.5, 0.31);
-const SPECULAR_DEFAULT: (f32, f32, f32) = (0.5, 0.5, 0.5);
-const LIGHT_COLOR_DEFAULT: (f32, f32, f32) = (1.0, 1.0, 1.0);
-const SHININESS_DEFAULT: f32 = 32.0;
+const LIGHT_COLOR_DEFAULT: Vec3 = vec3(1.0, 1.0, 1.0);
 
 type PositionDelta2D = (f64, f64);
 
@@ -52,7 +46,7 @@ impl Renderer {
 
         let light_source = Light::new(
             &gl,
-            LIGHT_SOURCE_POSITION_DEFAULT,
+            None,
             Rc::clone(&lit_object_program),
             &VERTEX_DATA,
             VERTEX_DATA_STRIDE,
@@ -67,22 +61,6 @@ impl Renderer {
                 VERTEX_DATA_STRIDE,
             )
         }));
-
-        lit_object_program
-            .set_vec3(&gl, "lightColor", LIGHT_COLOR_DEFAULT)
-            .unwrap();
-        lit_object_program
-            .set_vec3(&gl, "material.ambient", AMBIENT_DEFAULT)
-            .unwrap();
-        lit_object_program
-            .set_vec3(&gl, "material.diffuse", DIFFUSE_DEFAULT)
-            .unwrap();
-        lit_object_program
-            .set_vec3(&gl, "material.specular", SPECULAR_DEFAULT)
-            .unwrap();
-        lit_object_program
-            .set_float(&gl, "material.shininess", SHININESS_DEFAULT)
-            .unwrap();
 
         let camera = Camera::new();
         Self {

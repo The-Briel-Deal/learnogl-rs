@@ -7,8 +7,16 @@ struct Material {
     float shininess;
 };
 
+struct Light {
+    vec3 position;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
 uniform Material material;
-uniform vec3 lightColor;
+uniform Light light;
 
 in vec3 FragPos;
 in vec3 Normal;
@@ -25,9 +33,9 @@ void main()
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(LightPos - FragPos);
 
-    vec3 diffuseLighting = calculateDiffuseLighting(norm, lightDir, lightColor, material.diffuse);
-    vec3 specularLighting = calculateSpecularLighting(norm, lightDir, lightColor, FragPos, material.specular, material.shininess);
-    vec3 ambientLighting = calculateAmbientLighting(material.ambient, lightColor);
+    vec3 ambientLighting = calculateAmbientLighting(material.ambient, light.ambient);
+    vec3 diffuseLighting = calculateDiffuseLighting(norm, lightDir, light.diffuse, material.diffuse);
+    vec3 specularLighting = calculateSpecularLighting(norm, lightDir, light.specular, FragPos, material.specular, material.shininess);
 
     vec3 resultLighting = ambientLighting + diffuseLighting + specularLighting;
 
