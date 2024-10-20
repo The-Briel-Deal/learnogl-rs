@@ -17,11 +17,13 @@ use crate::{
     timer::Timer,
 };
 
+const LIGHT_SOURCE_POSITION_DEFAULT: Vec3 = vec3(0.0, 2.0, 0.0);
+
 const AMBIENT_DEFAULT: (f32, f32, f32) = (1.0, 0.5, 0.31);
 const DIFFUSE_DEFAULT: (f32, f32, f32) = (1.0, 0.5, 0.31);
 const SPECULAR_DEFAULT: (f32, f32, f32) = (0.5, 0.5, 0.5);
-const SHININESS_DEFAULT: f32 = 32.0;
 const LIGHT_COLOR_DEFAULT: (f32, f32, f32) = (1.0, 1.0, 1.0);
+const SHININESS_DEFAULT: f32 = 32.0;
 
 type PositionDelta2D = (f64, f64);
 
@@ -50,7 +52,7 @@ impl Renderer {
 
         let light_source = Light::new(
             &gl,
-            vec3(0.0, 2.0, 0.0),
+            LIGHT_SOURCE_POSITION_DEFAULT,
             Rc::clone(&lit_object_program),
             &VERTEX_DATA,
             VERTEX_DATA_STRIDE,
@@ -59,8 +61,8 @@ impl Renderer {
         let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
             Cube::new(
                 &gl,
-                Rc::clone(&lit_object_program),
                 pos,
+                Rc::clone(&lit_object_program),
                 &VERTEX_DATA,
                 VERTEX_DATA_STRIDE,
             )

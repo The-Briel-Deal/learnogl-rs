@@ -16,8 +16,8 @@ pub struct Cube {
 impl Cube {
     pub fn new(
         gl: &Gl,
-        shader: Rc<Shader>,
         pos: Vec3,
+        shader: Rc<Shader>,
         vertex_data: &[f32],
         vertex_data_stride: i32,
     ) -> Self {
