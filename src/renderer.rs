@@ -20,6 +20,7 @@ use crate::{
 
 const AMBIENT_LIGHTING_CONSTANT: f32 = 0.3;
 const SPECULAR_STRENGTH_CONSTANT: f32 = 0.9;
+const SHININESS_CONSTANT: i32 = 128;
 
 type PositionDelta2D = (f64, f64);
 
@@ -80,11 +81,11 @@ impl Renderer {
             .unwrap();
 
         let camera = Camera::new();
-        //lit_object_program
-        //    .set_vec3(&gl, "viewPos", camera.pos().into())
-        //    .unwrap();
         lit_object_program
             .set_float(&gl, "specularStrength", SPECULAR_STRENGTH_CONSTANT)
+            .unwrap();
+        lit_object_program
+            .set_int(&gl, "shininess", SHININESS_CONSTANT)
             .unwrap();
 
         Self {

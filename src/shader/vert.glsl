@@ -1,4 +1,4 @@
-#version 330 core
+#version 460 core
 
 attribute vec3 aPos;
 attribute vec2 aTexCoord;
