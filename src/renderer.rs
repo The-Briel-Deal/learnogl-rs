@@ -18,9 +18,11 @@ use crate::{
     timer::Timer,
 };
 
-const AMBIENT_LIGHTING_CONSTANT: f32 = 0.3;
-const SPECULAR_STRENGTH_CONSTANT: f32 = 0.9;
-const SHININESS_CONSTANT: i32 = 128;
+const AMBIENT_DEFAULT: (f32, f32, f32) = (1.0, 0.5, 0.31);
+const DIFFUSE_DEFAULT: (f32, f32, f32) = (1.0, 0.5, 0.31);
+const SPECULAR_DEFAULT: (f32, f32, f32) = (0.5, 0.5, 0.5);
+const SHININESS_DEFAULT: f32 = 32.0;
+const LIGHT_COLOR_DEFAULT: (f32, f32, f32) = (1.0, 1.0, 1.0);
 
 type PositionDelta2D = (f64, f64);
 
@@ -71,23 +73,22 @@ impl Renderer {
         }));
 
         lit_object_program
-            .set_vec3(&gl, "objectColor", (1.0, 0.5, 0.31))
+            .set_vec3(&gl, "lightColor", LIGHT_COLOR_DEFAULT)
             .unwrap();
         lit_object_program
-            .set_vec3(&gl, "lightColor", (1.0, 1.0, 1.0))
+            .set_vec3(&gl, "material.ambient", AMBIENT_DEFAULT)
             .unwrap();
         lit_object_program
-            .set_float(&gl, "ambientLightConstant", AMBIENT_LIGHTING_CONSTANT)
+            .set_vec3(&gl, "material.diffuse", DIFFUSE_DEFAULT)
+            .unwrap();
+        lit_object_program
+            .set_vec3(&gl, "material.specular", SPECULAR_DEFAULT)
+            .unwrap();
+        lit_object_program
+            .set_float(&gl, "material.shininess", SHININESS_DEFAULT)
             .unwrap();
 
         let camera = Camera::new();
-        lit_object_program
-            .set_float(&gl, "specularStrength", SPECULAR_STRENGTH_CONSTANT)
-            .unwrap();
-        lit_object_program
-            .set_int(&gl, "shininess", SHININESS_CONSTANT)
-            .unwrap();
-
         Self {
             light_source,
             lit_object_program,
