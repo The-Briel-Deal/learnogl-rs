@@ -97,6 +97,7 @@ impl Renderer {
     }
 
     pub fn adjust_zoom(&mut self, degrees: GLfloat) {
+        self.light_source.adjust_zoom(degrees);
         for mesh in &mut self.lit_objects {
             mesh.adjust_zoom(degrees);
         }

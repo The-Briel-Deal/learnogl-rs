@@ -3,7 +3,7 @@ use std::rc::Rc;
 use glam::{vec3, Mat4, Vec3};
 
 use crate::{
-    gl::Gl,
+    gl::{types::GLfloat, Gl},
     mesh::{Mesh, VertexBuffer},
     shader::{Shader, ShaderTrait},
 };
@@ -104,5 +104,8 @@ impl Light {
     pub fn draw(&mut self, gl: &Gl, view_matrix: Mat4) {
         // I should probably not have draw mutate.
         self.mesh.draw(gl, view_matrix, &self.shader);
+    }
+    pub fn adjust_zoom(&mut self, degrees: GLfloat) {
+        self.mesh.adjust_zoom(degrees);
     }
 }
