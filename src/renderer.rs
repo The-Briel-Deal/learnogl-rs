@@ -13,11 +13,9 @@ use crate::{
     gl::{self, types::GLfloat, Gl},
     logging::setup_logging,
     object::{cube::Cube, light::Light},
-    shader::{Shader, ShaderTrait},
+    shader::Shader,
     timer::Timer,
 };
-
-const LIGHT_COLOR_DEFAULT: Vec3 = vec3(1.0, 1.0, 1.0);
 
 type PositionDelta2D = (f64, f64);
 
