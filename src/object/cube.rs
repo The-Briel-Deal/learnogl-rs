@@ -9,7 +9,6 @@ use crate::{
     shader::{Shader, ShaderTrait},
 };
 
-const SPECULAR_DEFAULT: Vec3 = vec3(0.5, 0.5, 0.5);
 const SHININESS_DEFAULT: f32 = 32.0;
 
 pub struct Cube {
