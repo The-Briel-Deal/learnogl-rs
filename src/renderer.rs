@@ -2,7 +2,7 @@
 #[allow(dead_code)]
 mod texture;
 
-use std::ffi::CString;
+use std::{ffi::CString, rc::Rc};
 
 use glam::{vec3, Vec3};
 use glutin::prelude::GlDisplay;
@@ -13,7 +13,7 @@ use crate::{
     gl::{self, types::GLfloat, Gl},
     logging::setup_logging,
     mesh::{Mesh, VertexBuffer},
-    object::light::Light,
+    object::{cube::Cube, light::Light},
     shader::{Shader, ShaderTrait},
     timer::Timer,
 };
@@ -28,8 +28,7 @@ type PositionDelta2D = (f64, f64);
 
 pub struct Renderer {
     light_source: Light,
-    lit_object_program: Shader,
-    lit_objects: Vec<Mesh>,
+    lit_objects: Vec<Cube>,
     camera: Camera,
     gl: Gl,
 }
@@ -44,32 +43,28 @@ impl Renderer {
         unsafe { gl.Enable(gl::DEPTH_TEST) };
         setup_logging(&gl);
 
-        let lit_object_program = Shader::new(
+        let lit_object_program = Rc::new(Shader::new(
             &gl,
             "src/shader/light_vert.glsl",
             "src/shader/lit_object_frag.glsl",
+        ));
+
+        let light_source = Light::new(
+            &gl,
+            vec3(0.0, 2.0, 0.0),
+            Rc::clone(&lit_object_program),
+            &VERTEX_DATA,
+            VERTEX_DATA_STRIDE,
         );
 
-        let light_source = Light::new(&gl, vec3(0.0, 2.0, 0.0), &VERTEX_DATA, VERTEX_DATA_STRIDE);
-
         let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
-            let lit_object_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA, VERTEX_DATA_STRIDE);
-
-            lit_object_vertex_buffer.set_float_attribute_position(
+            Cube::new(
                 &gl,
-                "aPos",
-                lit_object_program.get_id(),
-                0,
-                3,
-            );
-            lit_object_vertex_buffer.set_float_attribute_position(
-                &gl,
-                "aNormal",
-                lit_object_program.get_id(),
-                3,
-                3,
-            );
-            Mesh::new(&lit_object_program, pos, lit_object_vertex_buffer)
+                Rc::clone(&lit_object_program),
+                pos,
+                &VERTEX_DATA,
+                VERTEX_DATA_STRIDE,
+            )
         }));
 
         lit_object_program
@@ -91,7 +86,6 @@ impl Renderer {
         let camera = Camera::new();
         Self {
             light_source,
-            lit_object_program,
             lit_objects,
             gl,
             camera,
@@ -153,7 +147,6 @@ impl Renderer {
                     self.light_source.pos().y,
                     self.light_source.pos().z,
                 ),
-                &self.lit_object_program,
             );
             self.light_source.draw(&self.gl, self.camera.view_matrix());
 

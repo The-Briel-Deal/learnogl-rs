@@ -19,7 +19,6 @@ struct Transform {
 }
 
 pub struct Mesh {
-    program: Shader,
     vertex_buffer: VertexBuffer,
     transform: Transform,
     fov: f32,
@@ -106,9 +105,8 @@ impl VertexBuffer {
 }
 
 impl Mesh {
-    pub fn new(program: &Shader, translation: Vec3, vertex_buffer: VertexBuffer) -> Self {
+    pub fn new(translation: Vec3, vertex_buffer: VertexBuffer) -> Self {
         Mesh {
-            program: program.clone(),
             vertex_buffer,
             transform: Transform {
                 rotation: get_rand_angle(),
@@ -153,7 +151,7 @@ impl Mesh {
         self.vertex_buffer.vao()
     }
 
-    pub fn draw(&mut self, gl: &Gl, view_matrix: Mat4) {
+    pub fn draw(&mut self, gl: &Gl, view_matrix: Mat4, shader: &Shader) {
         self.rotate_by(1.0);
         let transform = &self.transform;
 
@@ -166,11 +164,11 @@ impl Mesh {
         let projection_matrix =
             Mat4::perspective_rh_gl(self.fov.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
 
-        self.program.set_mat4(gl, "model", model_matrix).unwrap();
+        shader.set_mat4(gl, "model", model_matrix).unwrap();
 
-        self.program.set_mat4(gl, "view", view_matrix).unwrap();
+        shader.set_mat4(gl, "view", view_matrix).unwrap();
 
-        self.program
+        shader
             .set_mat4(gl, "projection", projection_matrix)
             .unwrap();
 
