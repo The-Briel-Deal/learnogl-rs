@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use glam::{vec3, Mat4, Vec3};
+use glam::{Mat4, Vec3};
 
 use crate::{
     gl::{types::GLfloat, Gl},
