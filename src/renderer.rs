@@ -18,8 +18,8 @@ use crate::{
     timer::Timer,
 };
 
-const AMBIENT_LIGHTING_CONSTANT: f32 = 0.1;
-const SPECULAR_STRENGTH_CONSTANT: f32 = 0.5;
+const AMBIENT_LIGHTING_CONSTANT: f32 = 0.3;
+const SPECULAR_STRENGTH_CONSTANT: f32 = 0.9;
 
 type PositionDelta2D = (f64, f64);
 

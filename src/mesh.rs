@@ -84,7 +84,7 @@ impl VertexBuffer {
                 panic!("Attribute not found!")
             }
 
-            gl.EnableVertexArrayAttrib(self.vao(), dbg!(attrib) as u32);
+            gl.EnableVertexArrayAttrib(self.vao(), attrib as u32);
             gl.VertexArrayAttribFormat(
                 self.vao(),
                 attrib as u32,
@@ -93,7 +93,7 @@ impl VertexBuffer {
                 gl::FALSE,
                 (start as usize * std::mem::size_of::<f32>()) as gl::types::GLuint,
             );
-            gl.VertexArrayAttribBinding(self.vao(), dbg!(attrib) as u32, self.bindingindex);
+            gl.VertexArrayAttribBinding(self.vao(), attrib as u32, self.bindingindex);
         }
     }
 

@@ -52,7 +52,6 @@ impl ShaderTrait for Shader {
     fn set_int(&self, gl: &Gl, name: &str, val: i32) -> Result<(), String> {
         match self.get_uniform_id(gl, name) {
             Ok(id) => {
-                dbg!(name, id, val);
                 self.enable(gl);
 
                 unsafe {
