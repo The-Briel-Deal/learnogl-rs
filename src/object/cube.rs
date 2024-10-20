@@ -9,8 +9,6 @@ use crate::{
     shader::{Shader, ShaderTrait},
 };
 
-const AMBIENT_DEFAULT: Vec3 = vec3(1.0, 0.5, 0.31);
-const DIFFUSE_DEFAULT: Vec3 = vec3(1.0, 0.5, 0.31);
 const SPECULAR_DEFAULT: Vec3 = vec3(0.5, 0.5, 0.5);
 const SHININESS_DEFAULT: f32 = 32.0;
 
@@ -20,8 +18,6 @@ pub struct Cube {
     material: Material,
 }
 pub struct Material {
-    pub ambient: Vec3,
-    pub diffuse: Vec3,
     pub specular: Vec3,
     pub shininess: f32,
 }
@@ -58,8 +54,6 @@ impl Cube {
             mesh: Mesh::new(pos, lit_object_vertex_buffer),
             shader,
             material: Material {
-                ambient: AMBIENT_DEFAULT,
-                diffuse: DIFFUSE_DEFAULT,
                 specular: SPECULAR_DEFAULT,
                 shininess: SHININESS_DEFAULT,
             },

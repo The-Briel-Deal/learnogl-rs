@@ -48,7 +48,7 @@ impl Light {
         vertex_data: &[f32],
         vertex_data_stride: i32,
     ) -> Self {
-        let attrs = attrs.unwrap_or(LightAttributes::default());
+        let attrs = attrs.unwrap_or_default();
         let shader = Rc::new(Shader::new(
             gl,
             "src/shader/light_vert.glsl",
