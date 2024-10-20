@@ -2,7 +2,7 @@
 
 struct Material {
     sampler2D diffuse;
-    vec3 specular;
+    sampler2D specular;
     float shininess;
 };
 
@@ -26,7 +26,7 @@ out vec4 FragColor;
 
 vec3 calculateAmbientLighting(sampler2D diffuse, vec3 lightColor);
 vec3 calculateDiffuseLighting(vec3 normal, vec3 lightDir, vec3 lightColor, sampler2D diffuse);
-vec3 calculateSpecularLighting(vec3 normal, vec3 lightDir, vec3 lightColor, vec3 FragPos, vec3 specularStrength, float shininess);
+vec3 calculateSpecularLighting(vec3 normal, vec3 lightDir, vec3 lightColor, vec3 FragPos, sampler2D specularMap, float shininess);
 
 void main()
 {
@@ -54,11 +54,11 @@ vec3 calculateDiffuseLighting(vec3 normal, vec3 lightDir, vec3 lightColor, sampl
     return diffuseLighting;
 }
 
-vec3 calculateSpecularLighting(vec3 normal, vec3 lightDir, vec3 lightColor, vec3 FragPos, vec3 specularStrength, float shininess) {
+vec3 calculateSpecularLighting(vec3 normal, vec3 lightDir, vec3 lightColor, vec3 FragPos, sampler2D specularMap, float shininess) {
     vec3 viewDir = normalize(-FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
     float angleBetween = dot(viewDir, reflectDir);
     float spec = pow(max(angleBetween, 0.0), shininess);
-    vec3 specularLighting = specularStrength * spec * lightColor;
+    vec3 specularLighting = lightColor * spec * vec3(texture(specularMap, TexCoords));
     return specularLighting;
 }

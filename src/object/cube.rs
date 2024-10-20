@@ -18,7 +18,6 @@ pub struct Cube {
     material: Material,
 }
 pub struct Material {
-    pub specular: Vec3,
     pub shininess: f32,
 }
 
@@ -50,11 +49,19 @@ impl Cube {
             &shader,
             0,
         );
+        texture_manager.create_texture(
+            gl,
+            "material.specular",
+            "static/specular_container.png",
+            &shader,
+            1,
+        );
+        texture_manager.bind_texture(gl, "material.diffuse", 0);
+        texture_manager.bind_texture(gl, "material.specular", 1);
         Self {
             mesh: Mesh::new(pos, lit_object_vertex_buffer),
             shader,
             material: Material {
-                specular: SPECULAR_DEFAULT,
                 shininess: SHININESS_DEFAULT,
             },
         }
@@ -71,9 +78,6 @@ impl Cube {
     }
 
     fn update_material_uniforms(&self, gl: &Gl) {
-        self.shader
-            .set_vec3(gl, "material.specular", self.material.specular.into())
-            .unwrap();
         self.shader
             .set_float(gl, "material.shininess", self.material.shininess)
             .unwrap();
