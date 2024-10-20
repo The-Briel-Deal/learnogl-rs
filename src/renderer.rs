@@ -80,9 +80,9 @@ impl Renderer {
             .unwrap();
 
         let camera = Camera::new();
-        lit_object_program
-            .set_vec3(&gl, "viewPos", camera.pos().into())
-            .unwrap();
+        //lit_object_program
+        //    .set_vec3(&gl, "viewPos", camera.pos().into())
+        //    .unwrap();
         lit_object_program
             .set_float(&gl, "specularStrength", SPECULAR_STRENGTH_CONSTANT)
             .unwrap();
