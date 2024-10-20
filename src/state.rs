@@ -145,7 +145,7 @@ impl ApplicationHandler for App {
                 } = group_keys(&self.keys_down);
                 renderer.handle_movement_keys(movement_keys, delta_time);
                 renderer.handle_texture_blends_keys(texture_blend_keys);
-                renderer.draw(delta_time);
+                renderer.draw(&self.timer);
                 window.request_redraw();
 
                 gl_surface.swap_buffers(gl_context).unwrap();

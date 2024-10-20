@@ -14,6 +14,7 @@ use crate::{
     logging::setup_logging,
     mesh::{Mesh, VertexBuffer},
     shader::{Shader, ShaderTrait},
+    timer::Timer,
 };
 
 const AMBIENT_LIGHTING_CONSTANT: f32 = 0.1;
@@ -23,6 +24,7 @@ type PositionDelta2D = (f64, f64);
 
 pub struct Renderer {
     light_source: Mesh,
+    lit_object_program: Shader,
     lit_objects: Vec<Mesh>,
     camera: Camera,
     gl: Gl,
@@ -108,6 +110,7 @@ impl Renderer {
 
         Self {
             light_source,
+            lit_object_program,
             lit_objects,
             gl,
             camera,
@@ -135,8 +138,8 @@ impl Renderer {
         self.camera.adjust_pitch(-(delta.1 as f32 / 10.0));
     }
 
-    pub fn draw(&mut self, _delta_time: f32) {
-        self.draw_with_clear_color(0.1, 0.1, 0.1, 0.9);
+    pub fn draw(&mut self, timer: &Timer) {
+        self.draw_with_clear_color(timer, 0.1, 0.1, 0.1, 0.9);
     }
 
     pub fn adjust_zoom(&mut self, degrees: GLfloat) {
@@ -151,6 +154,7 @@ impl Renderer {
 
     fn draw_with_clear_color(
         &mut self,
+        timer: &Timer,
         red: GLfloat,
         green: GLfloat,
         blue: GLfloat,
@@ -159,6 +163,13 @@ impl Renderer {
         unsafe {
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+
+            let time_elapsed = timer.elapsed();
+            self.light_source
+                .set_pos(vec3(time_elapsed.sin(), self.light_source.pos().y, self.light_source.pos().z));
+            self.lit_object_program
+                .set_vec3(&self.gl, "lightPos", self.light_source.pos().into())
+                .unwrap();
             self.light_source.draw(&self.gl, self.camera.view_matrix());
 
             for lit_object in &mut self.lit_objects {

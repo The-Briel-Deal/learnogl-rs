@@ -145,6 +145,10 @@ impl Mesh {
         self.transform.translation
     }
 
+    pub fn set_pos(&mut self, pos: Vec3) {
+        self.transform.translation = pos;
+    }
+
     pub fn vao(&self) -> GLuint {
         self.vertex_buffer.vao()
     }

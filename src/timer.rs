@@ -3,6 +3,7 @@ use std::time::Instant;
 pub struct Timer {
     last_instant: Instant,
     last_delta: f32,
+    elapsed: f32,
 }
 
 impl Timer {
@@ -13,7 +14,12 @@ impl Timer {
 
     pub fn reset(&mut self) {
         self.last_delta = self.last_instant.elapsed().as_secs_f32();
+        self.elapsed += self.last_delta;
         self.last_instant = Instant::now();
+    }
+
+    pub fn elapsed(&self) -> f32 {
+        self.elapsed
     }
 
     pub fn new() -> Self {
@@ -26,6 +32,7 @@ impl Default for Timer {
         Self {
             last_instant: Instant::now(),
             last_delta: 0.0,
+            elapsed: 0.0,
         }
     }
 }
