@@ -13,6 +13,7 @@ use crate::{
     gl::{self, types::GLfloat, Gl},
     logging::setup_logging,
     mesh::{Mesh, VertexBuffer},
+    object::light::Light,
     shader::{Shader, ShaderTrait},
     timer::Timer,
 };
@@ -23,7 +24,7 @@ const SPECULAR_STRENGTH_CONSTANT: f32 = 0.5;
 type PositionDelta2D = (f64, f64);
 
 pub struct Renderer {
-    light_source: Mesh,
+    light_source: Light,
     lit_object_program: Shader,
     lit_objects: Vec<Mesh>,
     camera: Camera,
@@ -40,33 +41,14 @@ impl Renderer {
         unsafe { gl.Enable(gl::DEPTH_TEST) };
         setup_logging(&gl);
 
-        let light_source_program = Shader::new(
-            &gl,
-            "src/shader/light_vert.glsl",
-            "src/shader/light_source_frag.glsl",
-        );
         let lit_object_program = Shader::new(
             &gl,
             "src/shader/light_vert.glsl",
             "src/shader/lit_object_frag.glsl",
         );
 
-        let light_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA, VERTEX_DATA_STRIDE);
-        light_vertex_buffer.set_float_attribute_position(
-            &gl,
-            "aPos",
-            light_source_program.get_id(),
-            0,
-            3,
-        );
+        let light_source = Light::new(&gl, vec3(0.0, 2.0, 0.0), &VERTEX_DATA, VERTEX_DATA_STRIDE);
 
-        let mut light_source = Mesh::new(
-            &light_source_program,
-            vec3(0.0, 2.0, 0.0),
-            light_vertex_buffer,
-        );
-
-        light_source.adjust_scale(vec3(0.2, 0.2, 0.2));
         let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
             let lit_object_vertex_buffer = VertexBuffer::new(&gl, &VERTEX_DATA, VERTEX_DATA_STRIDE);
 
@@ -97,9 +79,6 @@ impl Renderer {
             .set_float(&gl, "ambientLightConstant", AMBIENT_LIGHTING_CONSTANT)
             .unwrap();
 
-        lit_object_program
-            .set_vec3(&gl, "lightPos", light_source.pos().into())
-            .unwrap();
         let camera = Camera::new();
         lit_object_program
             .set_vec3(&gl, "viewPos", camera.pos().into())
@@ -165,11 +144,15 @@ impl Renderer {
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
             let time_elapsed = timer.elapsed();
-            self.light_source
-                .set_pos(vec3(time_elapsed.sin(), self.light_source.pos().y, self.light_source.pos().z));
-            self.lit_object_program
-                .set_vec3(&self.gl, "lightPos", self.light_source.pos().into())
-                .unwrap();
+            self.light_source.set_pos(
+                &self.gl,
+                vec3(
+                    time_elapsed.sin(),
+                    self.light_source.pos().y,
+                    self.light_source.pos().z,
+                ),
+                &self.lit_object_program,
+            );
             self.light_source.draw(&self.gl, self.camera.view_matrix());
 
             for lit_object in &mut self.lit_objects {
