@@ -12,7 +12,6 @@ use crate::{
     camera::Camera,
     gl::{self, types::GLfloat, Gl},
     logging::setup_logging,
-    mesh::{Mesh, VertexBuffer},
     object::{cube::Cube, light::Light},
     shader::{Shader, ShaderTrait},
     timer::Timer,
