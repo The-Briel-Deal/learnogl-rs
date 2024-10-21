@@ -12,6 +12,10 @@ struct Light {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
+    float constant;
+    float linear;
+    float quadratic;
 };
 
 uniform Material material;
@@ -33,9 +37,12 @@ void main()
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(LightPos - FragPos);
 
-    vec3 ambientLighting = calculateAmbientLighting(material.diffuse, light.ambient);
-    vec3 diffuseLighting = calculateDiffuseLighting(norm, lightDir, light.diffuse, material.diffuse);
-    vec3 specularLighting = calculateSpecularLighting(norm, lightDir, light.specular, FragPos, material.specular, material.shininess);
+    float distance = length(light.position - FragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (pow(distance, 2)));
+
+    vec3 ambientLighting = calculateAmbientLighting(material.diffuse, light.ambient) * attenuation;
+    vec3 diffuseLighting = calculateDiffuseLighting(norm, lightDir, light.diffuse, material.diffuse) * attenuation;
+    vec3 specularLighting = calculateSpecularLighting(norm, lightDir, light.specular, FragPos, material.specular, material.shininess) * attenuation;
 
     vec3 resultLighting = ambientLighting + diffuseLighting + specularLighting;
 

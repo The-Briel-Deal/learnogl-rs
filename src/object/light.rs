@@ -20,6 +20,10 @@ pub struct LightAttributes {
     pub ambient: Vec3,
     pub diffuse: Vec3,
     pub specular: Vec3,
+
+    pub constant: f32,
+    pub linear: f32,
+    pub quadratic: f32,
 }
 
 pub struct Light {
@@ -35,6 +39,10 @@ impl Default for LightAttributes {
             ambient: AMBIENT_STRENGTH_DEFAULT,
             diffuse: DIFFUSE_STRENGTH_DEFAULT,
             specular: SPECULAR_STRENGTH_DEFAULT,
+            // TODO: Put these in constants
+            constant: 1.0,
+            linear: 0.09,
+            quadratic: 0.032,
         }
     }
 }
@@ -94,6 +102,15 @@ impl Light {
             .unwrap();
         self.lit_object_shader
             .set_vec3(gl, "light.specular", self.attrs.specular.into())
+            .unwrap();
+        self.lit_object_shader
+            .set_float(gl, "light.constant", self.attrs.constant)
+            .unwrap();
+        self.lit_object_shader
+            .set_float(gl, "light.linear", self.attrs.linear)
+            .unwrap();
+        self.lit_object_shader
+            .set_float(gl, "light.quadratic", self.attrs.quadratic)
             .unwrap();
     }
 
