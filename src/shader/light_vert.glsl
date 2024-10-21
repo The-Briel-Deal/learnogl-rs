@@ -4,7 +4,7 @@ layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTexCoords;
 
 struct Light {
-    vec3 position;
+    vec3 direction;
 
     vec3 ambient;
     vec3 diffuse;
@@ -26,7 +26,6 @@ void main()
     gl_Position = projection * view * model * vec4(aPos, 1.0);
     FragPos = vec3(view * model * vec4(aPos, 1.0));
     Normal = mat3(transpose(inverse(view * model))) * aNormal;
-    LightPos = vec3(view * vec4(light.position, 1.0));
+    //LightPos = vec3(view * vec4(light.position, 1.0));
     TexCoords = aTexCoords;
-
 }

@@ -7,7 +7,7 @@ struct Material {
 };
 
 struct Light {
-    vec3 position;
+    vec3 direction;
 
     vec3 ambient;
     vec3 diffuse;
@@ -31,7 +31,7 @@ vec3 calculateSpecularLighting(vec3 normal, vec3 lightDir, vec3 lightColor, vec3
 void main()
 {
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(LightPos - FragPos);
+    vec3 lightDir = normalize(-light.direction); // normalize(LightPos - FragPos);
 
     vec3 ambientLighting = calculateAmbientLighting(material.diffuse, light.ambient);
     vec3 diffuseLighting = calculateDiffuseLighting(norm, lightDir, light.diffuse, material.diffuse);

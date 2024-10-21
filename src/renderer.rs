@@ -10,7 +10,7 @@ use crate::{
     camera::Camera,
     gl::{self, types::GLfloat, Gl},
     logging::setup_logging,
-    object::{cube::Cube, light::Light},
+    object::{cube::Cube, directional_light::DirectionalLight, light::Light},
     shader::Shader,
     timer::Timer,
 };
@@ -18,7 +18,7 @@ use crate::{
 type PositionDelta2D = (f64, f64);
 
 pub struct Renderer {
-    light_source: Light,
+    light_source: DirectionalLight,
     lit_objects: Vec<Cube>,
     camera: Camera,
     gl: Gl,
@@ -40,13 +40,15 @@ impl Renderer {
             "src/shader/lit_object_frag.glsl",
         ));
 
-        let light_source = Light::new(
-            &gl,
-            None,
-            Rc::clone(&lit_object_program),
-            &VERTEX_DATA,
-            VERTEX_DATA_STRIDE,
-        );
+        // let light_source = Light::new(
+        //     &gl,
+        //     None,
+        //     Rc::clone(&lit_object_program),
+        //     &VERTEX_DATA,
+        //     VERTEX_DATA_STRIDE,
+        // );
+        let light_source = DirectionalLight::default();
+        light_source.sync(&gl, &lit_object_program);
 
         let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
             Cube::new(
@@ -93,7 +95,7 @@ impl Renderer {
     }
 
     pub fn adjust_zoom(&mut self, degrees: GLfloat) {
-        self.light_source.adjust_zoom(degrees);
+        // self.light_source.adjust_zoom(degrees);
         for mesh in &mut self.lit_objects {
             mesh.adjust_zoom(degrees);
         }
@@ -115,16 +117,16 @@ impl Renderer {
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-            let time_elapsed = timer.elapsed();
-            self.light_source.set_pos(
-                &self.gl,
-                vec3(
-                    time_elapsed.sin(),
-                    self.light_source.pos().y,
-                    self.light_source.pos().z,
-                ),
-            );
-            self.light_source.draw(&self.gl, self.camera.view_matrix());
+            // let time_elapsed = timer.elapsed();
+            // self.light_source.set_pos(
+            //     &self.gl,
+            //     vec3(
+            //         time_elapsed.sin(),
+            //         self.light_source.pos().y,
+            //         self.light_source.pos().z,
+            //     ),
+            // );
+            // self.light_source.draw(&self.gl, self.camera.view_matrix());
 
             for lit_object in &mut self.lit_objects {
                 lit_object.draw(&self.gl, self.camera.view_matrix())
