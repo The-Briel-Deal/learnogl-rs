@@ -1,4 +1,3 @@
-// TODO: Texture isn't currently being used due to lighting changes.
 pub mod texture;
 
 use std::{ffi::CString, rc::Rc};
