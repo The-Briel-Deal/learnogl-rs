@@ -10,7 +10,7 @@ struct Material {
 struct Light {
     vec3 position;  
     vec3 direction;
-    float cutOff;
+    float innerCutOff;
     float outerCutOff;
   
     vec3 ambient;
@@ -37,8 +37,11 @@ void main()
     // check if lighting is inside the spotlight cone
     float theta = dot(lightDir, normalize(-light.direction)); 
     
-    if(theta > light.cutOff) // remember that we're working with angles as cosines instead of degrees so a '>' is used.
+    if(theta > light.outerCutOff) // remember that we're working with angles as cosines instead of degrees so a '>' is used.
     {    
+    	float epsilon = light.outerCutOff - light.innerCutOff;
+        float intensity = (theta - light.outerCutOff) / epsilon;
+	
         // ambient
         vec3 ambient = light.ambient * texture(material.diffuse, TexCoords).rgb;
         
@@ -61,7 +64,7 @@ void main()
         diffuse   *= attenuation;
         specular *= attenuation;   
             
-        vec3 result = ambient + diffuse + specular;
+        vec3 result = ambient + ((diffuse + specular) * (1-intensity));
         FragColor = vec4(result, 1.0);
     }
     else 

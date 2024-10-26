@@ -9,7 +9,8 @@ use crate::{
 
 const POSITION_DEFAULT: Vec3 = vec3(0.0, 2.0, 0.0);
 const DIRECTION_DEFAULT: Vec3 = vec3(0.0, 0.0, -1.0);
-const CUTOFF_DEFAULT: f32 = 12.5;
+const INNER_CUTOFF_DEFAULT: f32 = 12.5;
+const OUTER_CUTOFF_DEFAULT: f32 = 14.5;
 
 const AMBIENT_STRENGTH_DEFAULT: Vec3 = vec3(0.2, 0.2, 0.2);
 const DIFFUSE_STRENGTH_DEFAULT: Vec3 = vec3(0.5, 0.5, 0.5);
@@ -24,7 +25,8 @@ struct LightAttributes {
 
     position: Vec3,
     direction: Vec3,
-    cutoff: f32,
+    inner_cutoff: f32,
+    outer_cutoff: f32,
 
     // Strength of each type of lighting
     ambient: Vec3,
@@ -44,7 +46,8 @@ impl LightAttributes {
 
             position: POSITION_DEFAULT,
             direction: DIRECTION_DEFAULT,
-            cutoff: CUTOFF_DEFAULT,
+            inner_cutoff: INNER_CUTOFF_DEFAULT,
+            outer_cutoff: OUTER_CUTOFF_DEFAULT,
 
             // Strength of each type of lighting
             ambient: AMBIENT_STRENGTH_DEFAULT,
@@ -83,7 +86,10 @@ impl LightAttributes {
             .set_vec3(gl, "light.direction", self.direction.into())
             .unwrap();
         self.bound_shader
-            .set_float(gl, "light.cutOff", self.cutoff.to_radians().cos())
+            .set_float(gl, "light.innerCutOff", self.inner_cutoff.to_radians().cos())
+            .unwrap();
+        self.bound_shader
+            .set_float(gl, "light.outerCutOff", self.outer_cutoff.to_radians().cos())
             .unwrap();
 
         self.bound_shader
