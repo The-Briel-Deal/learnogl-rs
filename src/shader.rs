@@ -1,4 +1,4 @@
-use std::{alloc::alloc_zeroed, fs};
+use std::fs;
 
 use glam::{Mat4, Vec3};
 
