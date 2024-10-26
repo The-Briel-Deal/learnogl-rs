@@ -1,9 +1,13 @@
-use std::fs;
+use std::{alloc::alloc_zeroed, fs};
 
-use glam::Mat4;
+use glam::{Mat4, Vec3};
 
 use crate::{
-    gl::{self, create_shader, types::GLuint, Gl},
+    gl::{
+        self, create_shader,
+        types::{GLfloat, GLuint},
+        Gl,
+    },
     helper::add_null_term,
 };
 
@@ -17,6 +21,7 @@ pub trait ShaderTrait {
     fn set_float(&self, gl: &Gl, name: &str, val: f32) -> Result<(), String>;
     fn set_vec2(&self, gl: &Gl, name: &str, val: (f32, f32)) -> Result<(), String>;
     fn set_vec3(&self, gl: &Gl, name: &str, val: (f32, f32, f32)) -> Result<(), String>;
+    fn get_vec3(&self, gl: &Gl, name: &str) -> Vec3;
     fn set_mat4(&self, gl: &Gl, name: &str, val: Mat4) -> Result<(), String>;
 }
 
@@ -98,6 +103,26 @@ impl ShaderTrait for Shader {
                 Ok(())
             }
             Err(err) => Err(err),
+        }
+    }
+    fn get_vec3(&self, gl: &Gl, name: &str) -> Vec3 {
+        match self.get_uniform_id(gl, name) {
+            Ok(id) => {
+                self.enable(gl);
+                unsafe {
+                    let params: *mut GLfloat = [0.0_f32, 0.0_f32, 0.0_f32].as_mut_ptr();
+                    gl.GetUniformfv(self.program_id, id, params);
+                    let x = *params;
+                    let y = *params.add(1);
+                    let z = *params.add(2);
+                    Vec3 { x, y, z }
+                }
+            }
+            Err(err) => Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
         }
     }
     fn set_mat4(&self, gl: &Gl, name: &str, val: Mat4) -> Result<(), String> {

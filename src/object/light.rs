@@ -9,18 +9,29 @@ use crate::{
 };
 
 const POSITION_DEFAULT: Vec3 = vec3(0.0, 2.0, 0.0);
+const DIRECTION_DEFAULT: Vec3 = vec3(0.0, 0.0, -1.0);
+const CUTOFF_DEFAULT: f32 = 12.5;
 
 const AMBIENT_STRENGTH_DEFAULT: Vec3 = vec3(0.2, 0.2, 0.2);
 const DIFFUSE_STRENGTH_DEFAULT: Vec3 = vec3(0.5, 0.5, 0.5);
 const SPECULAR_STRENGTH_DEFAULT: Vec3 = vec3(1.0, 1.0, 1.0);
 
+const ATTENUATION_CONSTANT_DEFAULT: f32 = 1.0;
+const ATTENUATION_LINEAR_DEFAULT: f32 = 0.09;
+const ATTENUATION_QUADRATIC_DEFAULT: f32 = 0.032;
+
+#[derive(Debug)]
 pub struct LightAttributes {
     pub position: Vec3,
+    pub direction: Vec3,
+    pub cutoff: f32,
+
     // Strength of each type of lighting
     pub ambient: Vec3,
     pub diffuse: Vec3,
     pub specular: Vec3,
 
+    // Attenuation
     pub constant: f32,
     pub linear: f32,
     pub quadratic: f32,
@@ -36,13 +47,18 @@ impl Default for LightAttributes {
     fn default() -> Self {
         Self {
             position: POSITION_DEFAULT,
+            direction: DIRECTION_DEFAULT,
+            cutoff: CUTOFF_DEFAULT,
+
+            // Strength of each type of lighting
             ambient: AMBIENT_STRENGTH_DEFAULT,
             diffuse: DIFFUSE_STRENGTH_DEFAULT,
             specular: SPECULAR_STRENGTH_DEFAULT,
-            // TODO: Put these in constants
-            constant: 1.0,
-            linear: 0.09,
-            quadratic: 0.032,
+
+            // Attenuation
+            constant: ATTENUATION_CONSTANT_DEFAULT,
+            linear: ATTENUATION_LINEAR_DEFAULT,
+            quadratic: ATTENUATION_QUADRATIC_DEFAULT,
         }
     }
 }
@@ -71,12 +87,14 @@ impl Light {
 
         mesh.adjust_scale(vec3(0.2, 0.2, 0.2));
 
-        Self {
+        let mut light = Self {
             mesh,
             shader,
             lit_object_shader,
             attrs,
-        }
+        };
+        light.sync_state(gl);
+        light
     }
 
     pub fn set_pos(&mut self, gl: &Gl, pos: Vec3) {
@@ -89,12 +107,23 @@ impl Light {
         self.sync_state(gl);
     }
 
+    pub fn attrs(&self) -> &LightAttributes {
+        &self.attrs
+    }
     pub fn sync_state(&mut self, gl: &Gl) {
-        //self.mesh.set_pos(self.attrs.position);
-        //self.lit_object_shader
-        //    .set_vec3(gl, "light.position", self.attrs.position.into())
-        //    .unwrap();
-        dbg!(self.attrs.ambient);
+        self.mesh.set_pos(self.attrs.position);
+        dbg!(&self.attrs);
+
+        self.lit_object_shader
+            .set_vec3(gl, "light.position", self.attrs.position.into())
+            .unwrap();
+        self.lit_object_shader
+            .set_vec3(gl, "light.direction", self.attrs.direction.into())
+            .unwrap();
+        self.lit_object_shader
+            .set_float(gl, "light.cutOff", self.attrs.cutoff.to_radians().cos())
+            .unwrap();
+
         self.lit_object_shader
             .set_vec3(gl, "light.ambient", self.attrs.ambient.into())
             .unwrap();
@@ -104,6 +133,7 @@ impl Light {
         self.lit_object_shader
             .set_vec3(gl, "light.specular", self.attrs.specular.into())
             .unwrap();
+
         self.lit_object_shader
             .set_float(gl, "light.constant", self.attrs.constant)
             .unwrap();

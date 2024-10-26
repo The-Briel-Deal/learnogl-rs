@@ -10,7 +10,10 @@ use crate::{
     camera::Camera,
     gl::{self, types::GLfloat, Gl},
     logging::setup_logging,
-    object::{cube::Cube, light::Light},
+    object::{
+        cube::Cube,
+        light::{Light, LightAttributes},
+    },
     shader::{Shader, ShaderTrait},
     timer::Timer,
 };
@@ -116,23 +119,14 @@ impl Renderer {
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
             let time_elapsed = timer.elapsed();
-            self.light_source
-                .lit_object_shader
-                .set_vec3(&self.gl, "light.position", self.camera.pos().into())
-                .unwrap();
-            self.light_source
-                .lit_object_shader
-                .set_vec3(
-                    &self.gl,
-                    "light.direction",
-                    self.camera.get_forwards_dir().into(),
-                )
-                .unwrap();
-            self.light_source
-                .lit_object_shader
-                .set_float(&self.gl, "light.cutOff", 12.5_f32.to_radians().cos())
-                .unwrap();
-            self.light_source.sync_state(&self.gl);
+            self.light_source.set_attrs(
+                &self.gl,
+                LightAttributes {
+                    position: self.camera.pos(),
+                    direction: self.camera.get_forwards_dir(),
+                    ..*self.light_source.attrs()
+                },
+            );
             self.light_source.draw(&self.gl, self.camera.view_matrix());
 
             for lit_object in &mut self.lit_objects {
