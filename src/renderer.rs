@@ -11,7 +11,7 @@ use crate::{
     gl::{self, types::GLfloat, Gl},
     logging::setup_logging,
     object::{cube::Cube, light::Light},
-    shader::Shader,
+    shader::{Shader, ShaderTrait},
     timer::Timer,
 };
 
@@ -36,8 +36,8 @@ impl Renderer {
 
         let lit_object_program = Rc::new(Shader::new(
             &gl,
-            "src/shader/light_vert.glsl",
-            "src/shader/lit_object_frag.glsl",
+            "src/shader/light_casters.vs",
+            "src/shader/light_casters.fs",
         ));
 
         let light_source = Light::new(
@@ -116,14 +116,23 @@ impl Renderer {
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
             let time_elapsed = timer.elapsed();
-            self.light_source.set_pos(
-                &self.gl,
-                vec3(
-                    time_elapsed.sin(),
-                    self.light_source.pos().y,
-                    self.light_source.pos().z,
-                ),
-            );
+            self.light_source
+                .lit_object_shader
+                .set_vec3(&self.gl, "light.position", self.camera.pos().into())
+                .unwrap();
+            self.light_source
+                .lit_object_shader
+                .set_vec3(
+                    &self.gl,
+                    "light.direction",
+                    self.camera.get_forwards_dir().into(),
+                )
+                .unwrap();
+            self.light_source
+                .lit_object_shader
+                .set_float(&self.gl, "light.cutOff", 12.5_f32.to_radians().cos())
+                .unwrap();
+            self.light_source.sync_state(&self.gl);
             self.light_source.draw(&self.gl, self.camera.view_matrix());
 
             for lit_object in &mut self.lit_objects {

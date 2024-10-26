@@ -8,6 +8,8 @@ struct Material {
 
 struct Light {
     vec3 position;
+    vec3 direction;
+    float cutoff;
 
     vec3 ambient;
     vec3 diffuse;
@@ -34,19 +36,24 @@ vec3 calculateSpecularLighting(vec3 normal, vec3 lightDir, vec3 lightColor, vec3
 
 void main()
 {
-    vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(LightPos - FragPos);
+    float theta = dot(lightDir, normalize(-light.direction));
 
-    float distance = length(light.position - FragPos);
-    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (pow(distance, 2)));
+    if (theta > light.cutoff) {
+        vec3 norm = normalize(Normal);
+        float distance = length(light.position - FragPos);
+        float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (pow(distance, 2)));
 
-    vec3 ambientLighting = calculateAmbientLighting(material.diffuse, light.ambient) * attenuation;
-    vec3 diffuseLighting = calculateDiffuseLighting(norm, lightDir, light.diffuse, material.diffuse) * attenuation;
-    vec3 specularLighting = calculateSpecularLighting(norm, lightDir, light.specular, FragPos, material.specular, material.shininess) * attenuation;
+        vec3 ambientLighting = calculateAmbientLighting(material.diffuse, light.ambient) * attenuation;
+        vec3 diffuseLighting = calculateDiffuseLighting(norm, lightDir, light.diffuse, material.diffuse) * attenuation;
+        vec3 specularLighting = calculateSpecularLighting(norm, lightDir, light.specular, FragPos, material.specular, material.shininess) * attenuation;
 
-    vec3 resultLighting = ambientLighting + diffuseLighting + specularLighting;
+        vec3 resultLighting = ambientLighting + diffuseLighting + specularLighting;
 
-    FragColor = vec4(resultLighting, 1.0);
+        FragColor = vec4(1.0, resultLighting);
+    } else {
+        FragColor = vec4(calculateAmbientLighting(material.diffuse, light.ambient), 1.0);
+    }
 }
 
 vec3 calculateAmbientLighting(sampler2D diffuse, vec3 lightColor) {

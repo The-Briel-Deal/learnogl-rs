@@ -29,7 +29,7 @@ pub struct LightAttributes {
 pub struct Light {
     mesh: Mesh,
     shader: Rc<Shader>,
-    lit_object_shader: Rc<Shader>,
+    pub lit_object_shader: Rc<Shader>,
     attrs: LightAttributes,
 }
 impl Default for LightAttributes {
@@ -59,8 +59,8 @@ impl Light {
         let attrs = attrs.unwrap_or_default();
         let shader = Rc::new(Shader::new(
             gl,
-            "src/shader/light_vert.glsl",
-            "src/shader/light_source_frag.glsl",
+            "src/shader/light_cube.vs",
+            "src/shader/light_cube.fs",
         ));
 
         let vertex_buffer = VertexBuffer::new(gl, vertex_data, vertex_data_stride);
@@ -89,11 +89,12 @@ impl Light {
         self.sync_state(gl);
     }
 
-    fn sync_state(&mut self, gl: &Gl) {
-        self.mesh.set_pos(self.attrs.position);
-        self.lit_object_shader
-            .set_vec3(gl, "light.position", self.attrs.position.into())
-            .unwrap();
+    pub fn sync_state(&mut self, gl: &Gl) {
+        //self.mesh.set_pos(self.attrs.position);
+        //self.lit_object_shader
+        //    .set_vec3(gl, "light.position", self.attrs.position.into())
+        //    .unwrap();
+        dbg!(self.attrs.ambient);
         self.lit_object_shader
             .set_vec3(gl, "light.ambient", self.attrs.ambient.into())
             .unwrap();
@@ -120,7 +121,7 @@ impl Light {
 
     pub fn draw(&mut self, gl: &Gl, view_matrix: Mat4) {
         // I should probably not have draw mutate.
-        self.mesh.draw(gl, view_matrix, &self.shader);
+        //self.mesh.draw(gl, view_matrix, &self.shader);
     }
     pub fn adjust_zoom(&mut self, degrees: GLfloat) {
         self.mesh.adjust_zoom(degrees);

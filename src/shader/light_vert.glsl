@@ -5,6 +5,8 @@ layout(location = 2) in vec2 aTexCoords;
 
 struct Light {
     vec3 position;
+    vec3 direction;
+    float cutoff;
 
     vec3 ambient;
     vec3 diffuse;

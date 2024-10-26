@@ -29,7 +29,7 @@ impl Camera {
     fn get_left_dir(&self) -> Vec3 {
         self.dir.euler().cross(self.up).normalize()
     }
-    fn get_forwards_dir(&self) -> Vec3 {
+    pub fn get_forwards_dir(&self) -> Vec3 {
         self.dir.euler()
     }
     fn get_backwards_dir(&self) -> Vec3 {
