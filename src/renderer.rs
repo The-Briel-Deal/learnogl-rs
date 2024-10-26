@@ -39,8 +39,8 @@ impl Renderer {
 
         let lit_object_program = Rc::new(Shader::new(
             &gl,
-            "src/shader/light_casters.vs",
-            "src/shader/light_casters.fs",
+            "src/shader/light_casters_vert.glsl",
+            "src/shader/light_casters_frag.glsl",
         ));
 
         let light_source = Box::new(FlashLight::new(&gl, Rc::clone(&lit_object_program)));
