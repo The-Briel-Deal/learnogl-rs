@@ -62,8 +62,8 @@ pub trait Light {
     fn dir(&self) -> Vec3;
     fn set_dir(&mut self, gl: &Gl, dir: Vec3);
 
-    fn draw(&self, gl: &Gl, view_matrix: Mat4) {}
-    fn adjust_zoom(&mut self, degrees: GLfloat) {}
+    fn draw(&self, _gl: &Gl, _view_matrix: Mat4) {}
+    fn adjust_zoom(&mut self, _degrees: GLfloat) {}
 }
 
 pub struct FlashLight {

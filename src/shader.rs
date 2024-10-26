@@ -21,7 +21,7 @@ pub trait ShaderTrait {
     fn set_float(&self, gl: &Gl, name: &str, val: f32) -> Result<(), String>;
     fn set_vec2(&self, gl: &Gl, name: &str, val: (f32, f32)) -> Result<(), String>;
     fn set_vec3(&self, gl: &Gl, name: &str, val: (f32, f32, f32)) -> Result<(), String>;
-    fn get_vec3(&self, gl: &Gl, name: &str) -> Vec3;
+    fn get_vec3(&self, gl: &Gl, name: &str) -> Result<Vec3, String>;
     fn set_mat4(&self, gl: &Gl, name: &str, val: Mat4) -> Result<(), String>;
 }
 
@@ -105,7 +105,7 @@ impl ShaderTrait for Shader {
             Err(err) => Err(err),
         }
     }
-    fn get_vec3(&self, gl: &Gl, name: &str) -> Vec3 {
+    fn get_vec3(&self, gl: &Gl, name: &str) -> Result<Vec3, String> {
         match self.get_uniform_id(gl, name) {
             Ok(id) => {
                 self.enable(gl);
@@ -115,14 +115,10 @@ impl ShaderTrait for Shader {
                     let x = *params;
                     let y = *params.add(1);
                     let z = *params.add(2);
-                    Vec3 { x, y, z }
+                    Ok(Vec3 { x, y, z })
                 }
             }
-            Err(err) => Vec3 {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            },
+            Err(err) => Err(err),
         }
     }
     fn set_mat4(&self, gl: &Gl, name: &str, val: Mat4) -> Result<(), String> {
