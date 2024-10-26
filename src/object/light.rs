@@ -110,10 +110,10 @@ impl LightAttributes {
 
 pub trait Light {
     fn pos(&self) -> Vec3;
-    fn set_pos(&mut self, gl: &Gl, pos: Vec3) -> &mut Self;
+    fn set_pos(&mut self, gl: &Gl, pos: Vec3) -> &mut dyn Light;
 
     fn dir(&self) -> Vec3;
-    fn set_dir(&mut self, gl: &Gl, dir: Vec3) -> &mut Self;
+    fn set_dir(&mut self, gl: &Gl, dir: Vec3) -> &mut dyn Light;
 
     fn draw(&self, _gl: &Gl, _view_matrix: Mat4) {}
     fn adjust_zoom(&mut self, _degrees: GLfloat) {}
@@ -135,7 +135,7 @@ impl Light for FlashLight {
     fn pos(&self) -> Vec3 {
         self.attrs.pos()
     }
-    fn set_pos(&mut self, gl: &Gl, pos: Vec3) -> &mut Self {
+    fn set_pos(&mut self, gl: &Gl, pos: Vec3) -> &mut dyn Light {
         self.attrs.set_pos(gl, pos);
         self
     }
@@ -143,7 +143,7 @@ impl Light for FlashLight {
     fn dir(&self) -> Vec3 {
         self.attrs.dir()
     }
-    fn set_dir(&mut self, gl: &Gl, dir: Vec3) -> &mut Self {
+    fn set_dir(&mut self, gl: &Gl, dir: Vec3) -> &mut dyn Light {
         self.attrs.set_dir(gl, dir);
         self
     }

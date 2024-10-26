@@ -21,7 +21,7 @@ use crate::{
 type PositionDelta2D = (f64, f64);
 
 pub struct Renderer {
-    light_source: FlashLight,
+    light_source: Box<dyn Light>,
     lit_objects: Vec<Cube>,
     camera: Camera,
     gl: Gl,
@@ -43,7 +43,7 @@ impl Renderer {
             "src/shader/light_casters.fs",
         ));
 
-        let light_source = FlashLight::new(&gl, Rc::clone(&lit_object_program));
+        let light_source = Box::new(FlashLight::new(&gl, Rc::clone(&lit_object_program)));
 
         let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
             Cube::new(
