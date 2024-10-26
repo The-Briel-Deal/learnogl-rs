@@ -1,4 +1,4 @@
-mod direction;
+pub mod direction;
 
 use direction::{Degrees, Direction};
 use glam::{vec3, Mat4, Vec3};

@@ -37,12 +37,6 @@ pub struct LightAttributes {
     pub quadratic: f32,
 }
 
-pub struct Light {
-    mesh: Mesh,
-    shader: Rc<Shader>,
-    pub lit_object_shader: Rc<Shader>,
-    attrs: LightAttributes,
-}
 impl Default for LightAttributes {
     fn default() -> Self {
         Self {
@@ -62,44 +56,51 @@ impl Default for LightAttributes {
         }
     }
 }
+pub trait Light {
+    fn pos(&self) -> Vec3;
+    fn set_pos(&mut self, gl: &Gl, pos: Vec3);
 
-impl Light {
+    fn dir(&self) -> Vec3;
+    fn set_dir(&mut self, gl: &Gl, dir: Vec3);
+
+    fn draw(&self, gl: &Gl, view_matrix: Mat4) {}
+    fn adjust_zoom(&mut self, degrees: GLfloat) {}
+}
+
+pub struct FlashLight {
+    pub lit_object_shader: Rc<Shader>,
+    attrs: LightAttributes,
+}
+
+impl Light for FlashLight {
+    fn pos(&self) -> Vec3 {
+        self.attrs.position
+    }
+    fn set_pos(&mut self, gl: &Gl, pos: Vec3) {
+        self.attrs.position = pos;
+        self.sync_state(gl);
+    }
+
+    fn dir(&self) -> Vec3 {
+        self.attrs.direction
+    }
+    fn set_dir(&mut self, gl: &Gl, dir: Vec3) {
+        self.attrs.direction = dir;
+        self.sync_state(gl);
+    }
+}
+
+impl FlashLight {
     /// Create a new light source. Leave attrs as None for default values.
-    pub fn new(
-        gl: &Gl,
-        attrs: Option<LightAttributes>,
-        lit_object_shader: Rc<Shader>,
-        vertex_data: &[f32],
-        vertex_data_stride: i32,
-    ) -> Self {
+    pub fn new(gl: &Gl, attrs: Option<LightAttributes>, lit_object_shader: Rc<Shader>) -> Self {
         let attrs = attrs.unwrap_or_default();
-        let shader = Rc::new(Shader::new(
-            gl,
-            "src/shader/light_cube.vs",
-            "src/shader/light_cube.fs",
-        ));
-
-        let vertex_buffer = VertexBuffer::new(gl, vertex_data, vertex_data_stride);
-
-        vertex_buffer.set_float_attribute_position(gl, "aPos", shader.get_id(), 0, 3);
-
-        let mut mesh = Mesh::new(attrs.position, vertex_buffer);
-
-        mesh.adjust_scale(vec3(0.2, 0.2, 0.2));
 
         let mut light = Self {
-            mesh,
-            shader,
             lit_object_shader,
             attrs,
         };
         light.sync_state(gl);
         light
-    }
-
-    pub fn set_pos(&mut self, gl: &Gl, pos: Vec3) {
-        self.attrs.position = pos;
-        self.sync_state(gl);
     }
 
     pub fn set_attrs(&mut self, gl: &Gl, attrs: LightAttributes) {
@@ -111,9 +112,6 @@ impl Light {
         &self.attrs
     }
     pub fn sync_state(&mut self, gl: &Gl) {
-        self.mesh.set_pos(self.attrs.position);
-        dbg!(&self.attrs);
-
         self.lit_object_shader
             .set_vec3(gl, "light.position", self.attrs.position.into())
             .unwrap();
@@ -143,17 +141,5 @@ impl Light {
         self.lit_object_shader
             .set_float(gl, "light.quadratic", self.attrs.quadratic)
             .unwrap();
-    }
-
-    pub fn pos(&self) -> Vec3 {
-        self.attrs.position
-    }
-
-    pub fn draw(&mut self, gl: &Gl, view_matrix: Mat4) {
-        // I should probably not have draw mutate.
-        //self.mesh.draw(gl, view_matrix, &self.shader);
-    }
-    pub fn adjust_zoom(&mut self, degrees: GLfloat) {
-        self.mesh.adjust_zoom(degrees);
     }
 }

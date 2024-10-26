@@ -3,6 +3,7 @@ use std::rc::Rc;
 use glam::{Mat4, Vec3};
 
 use crate::{
+    camera::direction::Degrees,
     gl::{types::GLfloat, Gl},
     mesh::{Mesh, VertexBuffer},
     renderer::texture::TextureManager,
@@ -68,12 +69,15 @@ impl Cube {
     pub fn adjust_blend(&mut self, blend: f32) {
         self.mesh.adjust_blend(blend)
     }
-    pub fn draw(&mut self, gl: &Gl, view_matrix: Mat4) {
+    pub fn draw(&self, gl: &Gl, view_matrix: Mat4) {
         self.update_material_uniforms(gl);
         self.mesh.draw(gl, view_matrix, &self.shader);
     }
     pub fn adjust_zoom(&mut self, zoom: GLfloat) {
         self.mesh.adjust_zoom(zoom);
+    }
+    pub fn rotate_by(&mut self, rotation: Degrees) {
+        self.mesh.rotate_by(rotation);
     }
 
     fn update_material_uniforms(&self, gl: &Gl) {

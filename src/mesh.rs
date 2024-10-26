@@ -151,8 +151,8 @@ impl Mesh {
         self.vertex_buffer.vao()
     }
 
-    pub fn draw(&mut self, gl: &Gl, view_matrix: Mat4, shader: &Shader) {
-        self.rotate_by(1.0);
+    pub fn draw(&self, gl: &Gl, view_matrix: Mat4, shader: &Shader) {
+        // self.rotate_by(1.0);
         let transform = &self.transform;
 
         let model_matrix = Mat4::IDENTITY

@@ -12,16 +12,16 @@ use crate::{
     logging::setup_logging,
     object::{
         cube::Cube,
-        light::{Light, LightAttributes},
+        light::{FlashLight, Light, LightAttributes},
     },
-    shader::{Shader, ShaderTrait},
+    shader::Shader,
     timer::Timer,
 };
 
 type PositionDelta2D = (f64, f64);
 
 pub struct Renderer {
-    light_source: Light,
+    light_source: FlashLight,
     lit_objects: Vec<Cube>,
     camera: Camera,
     gl: Gl,
@@ -43,13 +43,7 @@ impl Renderer {
             "src/shader/light_casters.fs",
         ));
 
-        let light_source = Light::new(
-            &gl,
-            None,
-            Rc::clone(&lit_object_program),
-            &VERTEX_DATA,
-            VERTEX_DATA_STRIDE,
-        );
+        let light_source = FlashLight::new(&gl, None, Rc::clone(&lit_object_program));
 
         let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
             Cube::new(
@@ -118,7 +112,6 @@ impl Renderer {
             self.gl.ClearColor(red, green, blue, alpha);
             self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-            let time_elapsed = timer.elapsed();
             self.light_source.set_attrs(
                 &self.gl,
                 LightAttributes {
@@ -130,6 +123,7 @@ impl Renderer {
             self.light_source.draw(&self.gl, self.camera.view_matrix());
 
             for lit_object in &mut self.lit_objects {
+                lit_object.rotate_by(10.0 * timer.delta_time());
                 lit_object.draw(&self.gl, self.camera.view_matrix())
             }
         }
