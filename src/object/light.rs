@@ -19,26 +19,29 @@ const ATTENUATION_CONSTANT_DEFAULT: f32 = 1.0;
 const ATTENUATION_LINEAR_DEFAULT: f32 = 0.09;
 const ATTENUATION_QUADRATIC_DEFAULT: f32 = 0.032;
 
-#[derive(Debug)]
-pub struct LightAttributes {
-    pub position: Vec3,
-    pub direction: Vec3,
-    pub cutoff: f32,
+struct LightAttributes {
+    bound_shader: Rc<Shader>,
+
+    position: Vec3,
+    direction: Vec3,
+    cutoff: f32,
 
     // Strength of each type of lighting
-    pub ambient: Vec3,
-    pub diffuse: Vec3,
-    pub specular: Vec3,
+    ambient: Vec3,
+    diffuse: Vec3,
+    specular: Vec3,
 
     // Attenuation
-    pub constant: f32,
-    pub linear: f32,
-    pub quadratic: f32,
+    constant: f32,
+    linear: f32,
+    quadratic: f32,
 }
 
-impl Default for LightAttributes {
-    fn default() -> Self {
-        Self {
+impl LightAttributes {
+    fn new(gl: &Gl, bound_shader: Rc<Shader>) -> Self {
+        let attrs = Self {
+            bound_shader,
+
             position: POSITION_DEFAULT,
             direction: DIRECTION_DEFAULT,
             cutoff: CUTOFF_DEFAULT,
@@ -52,93 +55,96 @@ impl Default for LightAttributes {
             constant: ATTENUATION_CONSTANT_DEFAULT,
             linear: ATTENUATION_LINEAR_DEFAULT,
             quadratic: ATTENUATION_QUADRATIC_DEFAULT,
-        }
+        };
+        attrs.sync_state(gl);
+        attrs
+    }
+    pub fn set_pos(&mut self, gl: &Gl, pos: Vec3) {
+        self.position = pos;
+        self.sync_state(gl);
+    }
+    pub fn pos(&self) -> Vec3 {
+        self.position
+    }
+
+    pub fn set_dir(&mut self, gl: &Gl, dir: Vec3) {
+        self.direction = dir;
+        self.sync_state(gl);
+    }
+    pub fn dir(&self) -> Vec3 {
+        self.direction
+    }
+
+    fn sync_state(&self, gl: &Gl) {
+        self.bound_shader
+            .set_vec3(gl, "light.position", self.position.into())
+            .unwrap();
+        self.bound_shader
+            .set_vec3(gl, "light.direction", self.direction.into())
+            .unwrap();
+        self.bound_shader
+            .set_float(gl, "light.cutOff", self.cutoff.to_radians().cos())
+            .unwrap();
+
+        self.bound_shader
+            .set_vec3(gl, "light.ambient", self.ambient.into())
+            .unwrap();
+        self.bound_shader
+            .set_vec3(gl, "light.diffuse", self.diffuse.into())
+            .unwrap();
+        self.bound_shader
+            .set_vec3(gl, "light.specular", self.specular.into())
+            .unwrap();
+
+        self.bound_shader
+            .set_float(gl, "light.constant", self.constant)
+            .unwrap();
+        self.bound_shader
+            .set_float(gl, "light.linear", self.linear)
+            .unwrap();
+        self.bound_shader
+            .set_float(gl, "light.quadratic", self.quadratic)
+            .unwrap();
     }
 }
+
 pub trait Light {
     fn pos(&self) -> Vec3;
-    fn set_pos(&mut self, gl: &Gl, pos: Vec3);
+    fn set_pos(&mut self, gl: &Gl, pos: Vec3) -> &mut Self;
 
     fn dir(&self) -> Vec3;
-    fn set_dir(&mut self, gl: &Gl, dir: Vec3);
+    fn set_dir(&mut self, gl: &Gl, dir: Vec3) -> &mut Self;
 
     fn draw(&self, _gl: &Gl, _view_matrix: Mat4) {}
     fn adjust_zoom(&mut self, _degrees: GLfloat) {}
 }
 
 pub struct FlashLight {
-    pub lit_object_shader: Rc<Shader>,
     attrs: LightAttributes,
+}
+
+impl FlashLight {
+    pub fn new(gl: &Gl, lit_object_shader: Rc<Shader>) -> Self {
+        Self {
+            attrs: LightAttributes::new(gl, lit_object_shader),
+        }
+    }
 }
 
 impl Light for FlashLight {
     fn pos(&self) -> Vec3 {
-        self.attrs.position
+        self.attrs.pos()
     }
-    fn set_pos(&mut self, gl: &Gl, pos: Vec3) {
-        self.attrs.position = pos;
-        self.sync_state(gl);
+    fn set_pos(&mut self, gl: &Gl, pos: Vec3) -> &mut Self {
+        self.attrs.set_pos(gl, pos);
+        self
     }
 
     fn dir(&self) -> Vec3 {
-        self.attrs.direction
+        self.attrs.dir()
     }
-    fn set_dir(&mut self, gl: &Gl, dir: Vec3) {
-        self.attrs.direction = dir;
-        self.sync_state(gl);
-    }
-}
-
-impl FlashLight {
-    /// Create a new light source. Leave attrs as None for default values.
-    pub fn new(gl: &Gl, attrs: Option<LightAttributes>, lit_object_shader: Rc<Shader>) -> Self {
-        let attrs = attrs.unwrap_or_default();
-
-        let mut light = Self {
-            lit_object_shader,
-            attrs,
-        };
-        light.sync_state(gl);
-        light
-    }
-
-    pub fn set_attrs(&mut self, gl: &Gl, attrs: LightAttributes) {
-        self.attrs = attrs;
-        self.sync_state(gl);
-    }
-
-    pub fn attrs(&self) -> &LightAttributes {
-        &self.attrs
-    }
-    pub fn sync_state(&mut self, gl: &Gl) {
-        self.lit_object_shader
-            .set_vec3(gl, "light.position", self.attrs.position.into())
-            .unwrap();
-        self.lit_object_shader
-            .set_vec3(gl, "light.direction", self.attrs.direction.into())
-            .unwrap();
-        self.lit_object_shader
-            .set_float(gl, "light.cutOff", self.attrs.cutoff.to_radians().cos())
-            .unwrap();
-
-        self.lit_object_shader
-            .set_vec3(gl, "light.ambient", self.attrs.ambient.into())
-            .unwrap();
-        self.lit_object_shader
-            .set_vec3(gl, "light.diffuse", self.attrs.diffuse.into())
-            .unwrap();
-        self.lit_object_shader
-            .set_vec3(gl, "light.specular", self.attrs.specular.into())
-            .unwrap();
-
-        self.lit_object_shader
-            .set_float(gl, "light.constant", self.attrs.constant)
-            .unwrap();
-        self.lit_object_shader
-            .set_float(gl, "light.linear", self.attrs.linear)
-            .unwrap();
-        self.lit_object_shader
-            .set_float(gl, "light.quadratic", self.attrs.quadratic)
-            .unwrap();
+    fn set_dir(&mut self, gl: &Gl, dir: Vec3) -> &mut Self {
+        self.attrs.set_dir(gl, dir);
+        self
     }
 }

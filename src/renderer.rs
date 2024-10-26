@@ -12,7 +12,7 @@ use crate::{
     logging::setup_logging,
     object::{
         cube::Cube,
-        light::{FlashLight, Light, LightAttributes},
+        light::{FlashLight, Light},
     },
     shader::Shader,
     timer::Timer,
@@ -43,7 +43,7 @@ impl Renderer {
             "src/shader/light_casters.fs",
         ));
 
-        let light_source = FlashLight::new(&gl, None, Rc::clone(&lit_object_program));
+        let light_source = FlashLight::new(&gl, Rc::clone(&lit_object_program));
 
         let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
             Cube::new(
@@ -108,23 +108,19 @@ impl Renderer {
         blue: GLfloat,
         alpha: GLfloat,
     ) {
+        let gl = &self.gl;
         unsafe {
-            self.gl.ClearColor(red, green, blue, alpha);
-            self.gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+            gl.ClearColor(red, green, blue, alpha);
+            gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-            self.light_source.set_attrs(
-                &self.gl,
-                LightAttributes {
-                    position: self.camera.pos(),
-                    direction: self.camera.get_forwards_dir(),
-                    ..*self.light_source.attrs()
-                },
-            );
-            self.light_source.draw(&self.gl, self.camera.view_matrix());
+            self.light_source
+                .set_pos(gl, self.camera.pos())
+                .set_dir(gl, self.camera.get_forwards_dir())
+                .draw(gl, self.camera.view_matrix());
 
             for lit_object in &mut self.lit_objects {
                 lit_object.rotate_by(10.0 * timer.delta_time());
-                lit_object.draw(&self.gl, self.camera.view_matrix())
+                lit_object.draw(gl, self.camera.view_matrix())
             }
         }
     }
