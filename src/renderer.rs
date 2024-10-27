@@ -9,7 +9,7 @@ use winit::keyboard::KeyCode;
 use crate::{
     camera::Camera,
     gl::{self, types::GLfloat, Gl},
-    light::{FlashLight, Light},
+    light::{SpotLight, Light},
     logging::setup_logging,
     object::cube::Cube,
     shader::Shader,
@@ -41,7 +41,7 @@ impl Renderer {
             "src/shader/light_casters_frag.glsl",
         ));
 
-        let light_source = Box::new(FlashLight::new(&gl, Rc::clone(&lit_object_program)));
+        let light_source = Box::new(SpotLight::new(&gl, Rc::clone(&lit_object_program)));
 
         let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
             Cube::new(

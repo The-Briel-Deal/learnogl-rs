@@ -2,11 +2,12 @@ use std::rc::Rc;
 
 use glam::{vec3, Vec3};
 
-use crate::{gl::Gl, shader::{Shader, ShaderTrait}};
+use crate::{
+    gl::Gl,
+    shader::{Shader, ShaderTrait},
+};
 
 use super::Light;
-
-
 
 const POSITION_DEFAULT: Vec3 = vec3(0.0, 2.0, 0.0);
 const DIRECTION_DEFAULT: Vec3 = vec3(0.0, 0.0, -1.0);
@@ -123,12 +124,11 @@ impl LightAttributes {
     }
 }
 
-
-pub struct FlashLight {
+pub struct SpotLight {
     attrs: LightAttributes,
 }
 
-impl FlashLight {
+impl SpotLight {
     pub fn new(gl: &Gl, lit_object_shader: Rc<Shader>) -> Self {
         Self {
             attrs: LightAttributes::new(gl, lit_object_shader),
@@ -136,7 +136,7 @@ impl FlashLight {
     }
 }
 
-impl Light for FlashLight {
+impl Light for SpotLight {
     fn pos(&self) -> Vec3 {
         self.attrs.pos()
     }
