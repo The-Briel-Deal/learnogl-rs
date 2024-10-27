@@ -9,7 +9,7 @@ use winit::keyboard::KeyCode;
 use crate::{
     camera::Camera,
     gl::{self, types::GLfloat, Gl},
-    light::{SpotLight, Light},
+    light::{Light, SpotLight},
     logging::setup_logging,
     object::cube::Cube,
     shader::Shader,
