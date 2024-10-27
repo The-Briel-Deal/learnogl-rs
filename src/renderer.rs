@@ -9,7 +9,7 @@ use winit::keyboard::KeyCode;
 use crate::{
     camera::Camera,
     gl::{self, types::GLfloat, Gl},
-    light::{Light, SpotLight},
+    light::{DirectionLight, Light, PointLight, SpotLight},
     logging::setup_logging,
     object::cube::Cube,
     shader::Shader,
@@ -19,7 +19,9 @@ use crate::{
 type PositionDelta2D = (f64, f64);
 
 pub struct Renderer {
-    light_source: Box<dyn Light>,
+    flash_light: Box<dyn Light>,
+    dir_light: Box<dyn Light>,
+    point_lights: Vec<Box<dyn Light>>,
     lit_objects: Vec<Cube>,
     camera: Camera,
     gl: Gl,
@@ -41,7 +43,21 @@ impl Renderer {
             "src/shader/light_casters_frag.glsl",
         ));
 
-        let light_source = Box::new(SpotLight::new(&gl, Rc::clone(&lit_object_program)));
+        let flash_light = Box::new(SpotLight::new(&gl, Rc::clone(&lit_object_program)));
+        let dir_light = Box::new(DirectionLight::new(&gl, Rc::clone(&lit_object_program)));
+        let point_lights: Vec<Box<dyn Light>> = POINT_LIGHT_POSITIONS
+            .iter()
+            .enumerate()
+            .map(|(index, pos)| {
+                let mut light: Box<dyn Light> = Box::new(PointLight::new(
+                    &gl,
+                    Rc::clone(&lit_object_program),
+                    index as u8,
+                ));
+                light.set_pos(&gl, *pos);
+                light
+            })
+            .collect();
 
         let lit_objects = Vec::from(LIT_CUBE_POSITIONS.map(|pos| {
             Cube::new(
@@ -55,7 +71,9 @@ impl Renderer {
 
         let camera = Camera::new();
         Self {
-            light_source,
+            flash_light,
+            dir_light,
+            point_lights,
             lit_objects,
             gl,
             camera,
@@ -88,7 +106,10 @@ impl Renderer {
     }
 
     pub fn adjust_zoom(&mut self, degrees: GLfloat) {
-        self.light_source.adjust_zoom(degrees);
+        self.flash_light.adjust_zoom(degrees);
+        for light in &mut self.point_lights {
+            light.adjust_zoom(degrees);
+        }
         for mesh in &mut self.lit_objects {
             mesh.adjust_zoom(degrees);
         }
@@ -111,10 +132,16 @@ impl Renderer {
             gl.ClearColor(red, green, blue, alpha);
             gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-            self.light_source
+            self.flash_light
                 .set_pos(gl, self.camera.pos())
                 .set_dir(gl, self.camera.get_forwards_dir())
                 .draw(gl, self.camera.view_matrix());
+            self.dir_light
+                .set_dir(gl, vec3(0.0, -1.0, 0.0).normalize())
+                .draw(gl, self.camera.view_matrix());
+            self.point_lights
+                .iter()
+                .for_each(|light| light.draw(gl, self.camera.view_matrix()));
 
             for lit_object in &mut self.lit_objects {
                 lit_object.rotate_by(10.0 * timer.delta_time());
@@ -123,6 +150,14 @@ impl Renderer {
         }
     }
 }
+
+#[rustfmt::skip]
+static POINT_LIGHT_POSITIONS: [Vec3; 4] = [
+    vec3( 0.7,  0.2,  2.0),
+    vec3( 2.3, -3.3, -4.0),
+    vec3(-4.0,  2.0, -12.0),
+    vec3( 0.0,  0.0, -3.0)
+];
 
 #[rustfmt::skip]
 static LIT_CUBE_POSITIONS: [Vec3; 10] = [
@@ -138,10 +173,10 @@ static LIT_CUBE_POSITIONS: [Vec3; 10] = [
     vec3(-1.3,  1.0, -1.5)
 ];
 
-const VERTEX_DATA_STRIDE: i32 = 8;
+pub const VERTEX_DATA_STRIDE: i32 = 8;
 
 #[rustfmt::skip]
-static VERTEX_DATA: [f32; 288] = [
+pub static VERTEX_DATA: [f32; 288] = [
      // positions      // normals        // texture coords
     -0.5, -0.5, -0.5,  0.0,  0.0, -1.0,  0.0, 0.0,
      0.5, -0.5, -0.5,  0.0,  0.0, -1.0,  1.0, 0.0,
