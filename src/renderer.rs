@@ -9,11 +9,9 @@ use winit::keyboard::KeyCode;
 use crate::{
     camera::Camera,
     gl::{self, types::GLfloat, Gl},
+    light::{FlashLight, Light},
     logging::setup_logging,
-    object::{
-        cube::Cube,
-        light::{FlashLight, Light},
-    },
+    object::cube::Cube,
     shader::Shader,
     timer::Timer,
 };

@@ -1,11 +1,12 @@
 use std::rc::Rc;
 
-use glam::{vec3, Mat4, Vec3};
+use glam::{vec3, Vec3};
 
-use crate::{
-    gl::{types::GLfloat, Gl},
-    shader::{Shader, ShaderTrait},
-};
+use crate::{gl::Gl, shader::{Shader, ShaderTrait}};
+
+use super::Light;
+
+
 
 const POSITION_DEFAULT: Vec3 = vec3(0.0, 2.0, 0.0);
 const DIRECTION_DEFAULT: Vec3 = vec3(0.0, 0.0, -1.0);
@@ -86,10 +87,18 @@ impl LightAttributes {
             .set_vec3(gl, "light.direction", self.direction.into())
             .unwrap();
         self.bound_shader
-            .set_float(gl, "light.innerCutOff", self.inner_cutoff.to_radians().cos())
+            .set_float(
+                gl,
+                "light.innerCutOff",
+                self.inner_cutoff.to_radians().cos(),
+            )
             .unwrap();
         self.bound_shader
-            .set_float(gl, "light.outerCutOff", self.outer_cutoff.to_radians().cos())
+            .set_float(
+                gl,
+                "light.outerCutOff",
+                self.outer_cutoff.to_radians().cos(),
+            )
             .unwrap();
 
         self.bound_shader
@@ -114,16 +123,6 @@ impl LightAttributes {
     }
 }
 
-pub trait Light {
-    fn pos(&self) -> Vec3;
-    fn set_pos(&mut self, gl: &Gl, pos: Vec3) -> &mut dyn Light;
-
-    fn dir(&self) -> Vec3;
-    fn set_dir(&mut self, gl: &Gl, dir: Vec3) -> &mut dyn Light;
-
-    fn draw(&self, _gl: &Gl, _view_matrix: Mat4) {}
-    fn adjust_zoom(&mut self, _degrees: GLfloat) {}
-}
 
 pub struct FlashLight {
     attrs: LightAttributes,
