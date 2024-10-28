@@ -1,6 +1,8 @@
 #![allow(clippy::all)]
 include!(concat!(env!("OUT_DIR"), "/gl_bindings.rs"));
 
+mod uniform;
+
 use std::ffi::CStr;
 
 use glutin::{
@@ -11,6 +13,7 @@ use glutin::{
 };
 use types::{GLenum, GLuint};
 use winit::{raw_window_handle::HasWindowHandle, window::Window};
+
 
 impl Gl {
     pub fn get_aspect_ratio(&self) -> f32 {

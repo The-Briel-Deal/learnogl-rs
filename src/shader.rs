@@ -1,4 +1,11 @@
-use std::fs;
+use std::{
+    alloc::{alloc, GlobalAlloc, Layout},
+    borrow::Borrow,
+    cell::RefCell,
+    fs,
+    ops::Deref,
+    rc::Rc,
+};
 
 use glam::{Mat4, Vec3};
 
@@ -175,5 +182,38 @@ impl Shader {
         }
 
         Ok(uniform_id)
+    }
+    pub fn get_uniform(&self, gl: &Gl, name: &str) -> Uniform {
+        let id = self.get_uniform_id(gl, name);
+        Uniform {
+            gl: gl.clone(),
+            uniform_id: id.unwrap(),
+            val: RefCell::new(Vec3::ZERO),
+            shader_id: self.program_id,
+        }
+    }
+}
+
+pub struct Uniform {
+    gl: Gl,
+    shader_id: u32,
+    uniform_id: i32,
+    val: RefCell<Vec3>,
+}
+
+impl Deref for Uniform {
+    type Target = Vec3;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe {
+            let params: *mut f32 = [0.0, 0.0, 0.0].as_mut_ptr();
+            self.gl
+                .GetUniformfv(self.shader_id, self.uniform_id, params);
+            let x = *params.add(0);
+            let y = *params.add(1);
+            let z = *params.add(2);
+            *self.val.borrow_mut() = Vec3 { x, y, z };
+        };
+        unsafe { &*self.val.as_ptr() }
     }
 }

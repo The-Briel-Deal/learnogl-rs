@@ -81,6 +81,10 @@ impl SpotLightAttributes {
     }
 
     fn sync_state(&self, gl: &Gl) {
+        // let position = self.bound_shader.get_uniform(gl, "spotLight.position");
+        // let position_val = *position;
+        // dbg!(position);
+        
         self.bound_shader
             .set_vec3(gl, "spotLight.position", self.position.into())
             .unwrap();
