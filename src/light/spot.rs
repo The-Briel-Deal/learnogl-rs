@@ -84,10 +84,14 @@ impl SpotLightAttributes {
         // let position = self.bound_shader.get_uniform(gl, "spotLight.position");
         // let position_val = *position;
         // dbg!(position);
-        
-        self.bound_shader
-            .set_vec3(gl, "spotLight.position", self.position.into())
-            .unwrap();
+
+        let position_uniform = self.bound_shader.get_uniform(gl, "spotLight.position");
+        position_uniform.set(self.position);
+        dbg!(position_uniform.get());
+
+        //self.bound_shader
+        //    .set_vec3(gl, "spotLight.position", self.position.into())
+        //    .unwrap();
         self.bound_shader
             .set_vec3(gl, "spotLight.direction", self.direction.into())
             .unwrap();

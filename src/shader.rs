@@ -3,7 +3,8 @@ use std::{
     borrow::Borrow,
     cell::RefCell,
     fs,
-    ops::Deref,
+    marker::PhantomData,
+    ops::{Deref, DerefMut},
     rc::Rc,
 };
 
@@ -183,28 +184,26 @@ impl Shader {
 
         Ok(uniform_id)
     }
-    pub fn get_uniform(&self, gl: &Gl, name: &str) -> Uniform {
+    pub fn get_uniform(&self, gl: &Gl, name: &str) -> Uniform<Vec3> {
         let id = self.get_uniform_id(gl, name);
         Uniform {
             gl: gl.clone(),
             uniform_id: id.unwrap(),
-            val: RefCell::new(Vec3::ZERO),
             shader_id: self.program_id,
+            resource_type: PhantomData,
         }
     }
 }
 
-pub struct Uniform {
+pub struct Uniform<T> {
     gl: Gl,
     shader_id: u32,
     uniform_id: i32,
-    val: RefCell<Vec3>,
+    resource_type: PhantomData<T>,
 }
 
-impl Deref for Uniform {
-    type Target = Vec3;
-
-    fn deref(&self) -> &Self::Target {
+impl Uniform<Vec3> {
+    pub fn get(&self) -> Vec3 {
         unsafe {
             let params: *mut f32 = [0.0, 0.0, 0.0].as_mut_ptr();
             self.gl
@@ -212,8 +211,31 @@ impl Deref for Uniform {
             let x = *params.add(0);
             let y = *params.add(1);
             let z = *params.add(2);
-            *self.val.borrow_mut() = Vec3 { x, y, z };
-        };
-        unsafe { &*self.val.as_ptr() }
+
+            Vec3 { x, y, z }
+        }
+    }
+    pub fn set(&self, val: Vec3) {
+        unsafe {
+            self.gl
+                .ProgramUniform3f(self.shader_id, self.uniform_id, val.x, val.y, val.z)
+        }
     }
 }
+
+//impl<T> Deref for Uniform<T> {
+//    type Target = Vec3;
+//
+//    fn deref(&self) -> &Self::Target {
+//        unsafe {
+//            let params: *mut f32 = [0.0, 0.0, 0.0].as_mut_ptr();
+//            self.gl
+//                .GetUniformfv(self.shader_id, self.uniform_id, params);
+//            let x = *params.add(0);
+//            let y = *params.add(1);
+//            let z = *params.add(2);
+//            *self.val.borrow_mut() = Vec3 { x, y, z };
+//        };
+//        unsafe { &*self.val.as_ptr() }
+//    }
+//}
