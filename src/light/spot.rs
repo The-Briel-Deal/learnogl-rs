@@ -85,7 +85,7 @@ impl SpotLightAttributes {
         // let position_val = *position;
         // dbg!(position);
 
-        let position_uniform = self.bound_shader.get_uniform(gl, "spotLight.position");
+        let mut position_uniform = self.bound_shader.get_uniform(gl, "spotLight.position");
         position_uniform.set(self.position);
         dbg!(position_uniform.get());
 

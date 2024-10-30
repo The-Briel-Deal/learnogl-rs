@@ -215,7 +215,7 @@ impl Uniform<Vec3> {
             Vec3 { x, y, z }
         }
     }
-    pub fn set(&self, val: Vec3) {
+    pub fn set(&mut self, val: Vec3) {
         unsafe {
             self.gl
                 .ProgramUniform3f(self.shader_id, self.uniform_id, val.x, val.y, val.z)
