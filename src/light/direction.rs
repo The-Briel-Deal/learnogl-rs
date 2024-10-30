@@ -71,13 +71,11 @@ pub struct DirectionLight {
     attrs: DirectionLightAttributes,
 }
 impl DirectionLight {
-
     pub fn new(gl: &Gl, lit_object_shader: Rc<Shader>) -> Self {
         Self {
             attrs: DirectionLightAttributes::new(gl, lit_object_shader),
         }
     }
-
 }
 
 impl Light for DirectionLight {

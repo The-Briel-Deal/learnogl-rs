@@ -6,9 +6,9 @@ use glam::{Mat4, Vec3};
 
 use crate::gl::{types::GLfloat, Gl};
 
-pub use self::spot::SpotLight;
 pub use self::direction::DirectionLight;
 pub use self::point::PointLight;
+pub use self::spot::SpotLight;
 
 pub trait Light {
     fn pos(&self) -> Vec3;

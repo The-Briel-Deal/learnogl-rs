@@ -5,7 +5,7 @@ use glam::{vec3, Mat4, Vec3};
 use crate::{
     camera::direction::Degrees,
     gl::Gl,
-    object::{cube::Cube, light_cube::LightCube},
+    object::light_cube::LightCube,
     renderer::{VERTEX_DATA, VERTEX_DATA_STRIDE},
     shader::{Shader, ShaderTrait},
 };

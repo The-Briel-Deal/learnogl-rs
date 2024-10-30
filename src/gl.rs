@@ -14,7 +14,6 @@ use glutin::{
 use types::{GLenum, GLuint};
 use winit::{raw_window_handle::HasWindowHandle, window::Window};
 
-
 impl Gl {
     pub fn get_aspect_ratio(&self) -> f32 {
         let mut data: [types::GLint; 4] = [0, 0, 0, 0];
