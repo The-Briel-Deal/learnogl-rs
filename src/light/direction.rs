@@ -9,7 +9,6 @@ use crate::{
 
 use super::Light;
 
-const POSITION_DEFAULT: Vec3 = vec3(0.0, 2.0, 0.0);
 const DIRECTION_DEFAULT: Vec3 = vec3(0.0, 0.0, -1.0);
 
 const AMBIENT_STRENGTH_DEFAULT: Vec3 = vec3(0.2, 0.2, 0.2);
@@ -88,7 +87,7 @@ impl Light for DirectionLight {
     }
 
     // This is a no-op since DirectionLights don't have positions.
-    fn set_pos(&mut self, gl: &Gl, pos: Vec3) -> &mut dyn Light {
+    fn set_pos(&mut self, _gl: &Gl, _pos: Vec3) -> &mut dyn Light {
         self
     }
     fn pos(&self) -> Vec3 {

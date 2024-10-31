@@ -1,11 +1,16 @@
-use std::{fs, marker::PhantomData};
+use std::{
+    alloc::{alloc, alloc_zeroed, Layout},
+    fs,
+    marker::PhantomData,
+    mem::zeroed,
+};
 
 use glam::{Mat4, Vec3};
 
 use crate::{
     gl::{
         self, create_shader,
-        types::{GLfloat, GLuint},
+        types::{GLfloat, GLsizei, GLuint},
         Gl,
     },
     helper::add_null_term,
@@ -176,7 +181,7 @@ impl Shader {
 
         Ok(uniform_id)
     }
-    pub fn get_uniform(&self, gl: &Gl, name: &str) -> Uniform<Vec3> {
+    fn get_uniform<T>(&self, gl: &Gl, name: &str) -> Uniform<T> {
         let id = self.get_uniform_id(gl, name);
         Uniform {
             gl: gl.clone(),
@@ -187,6 +192,13 @@ impl Shader {
     }
 }
 
+pub struct LightCasterShader {
+    shader: Shader,
+    pub model: Uniform<Mat4>,
+    pub view: Uniform<Mat4>,
+    pub projection: Uniform<Mat4>,
+}
+
 pub struct Uniform<T> {
     gl: Gl,
     shader_id: u32,
@@ -194,8 +206,13 @@ pub struct Uniform<T> {
     resource_type: PhantomData<T>,
 }
 
-impl Uniform<Vec3> {
-    pub fn get(&self) -> Vec3 {
+trait UniformGetSet<T> {
+    fn get(&self) -> T;
+    fn set(&mut self, val: T);
+}
+
+impl UniformGetSet<Vec3> for Uniform<Vec3> {
+    fn get(&self) -> Vec3 {
         unsafe {
             let params: *mut f32 = [0.0, 0.0, 0.0].as_mut_ptr();
             self.gl
@@ -207,7 +224,7 @@ impl Uniform<Vec3> {
             Vec3 { x, y, z }
         }
     }
-    pub fn set(&mut self, val: Vec3) {
+    fn set(&mut self, val: Vec3) {
         unsafe {
             self.gl
                 .ProgramUniform3f(self.shader_id, self.uniform_id, val.x, val.y, val.z)
@@ -215,19 +232,43 @@ impl Uniform<Vec3> {
     }
 }
 
-//impl<T> Deref for Uniform<T> {
-//    type Target = Vec3;
-//
-//    fn deref(&self) -> &Self::Target {
-//        unsafe {
-//            let params: *mut f32 = [0.0, 0.0, 0.0].as_mut_ptr();
-//            self.gl
-//                .GetUniformfv(self.shader_id, self.uniform_id, params);
-//            let x = *params.add(0);
-//            let y = *params.add(1);
-//            let z = *params.add(2);
-//            *self.val.borrow_mut() = Vec3 { x, y, z };
-//        };
-//        unsafe { &*self.val.as_ptr() }
-//    }
-//}
+impl UniformGetSet<f32> for Uniform<f32> {
+    fn get(&self) -> f32 {
+        unsafe {
+            let params: *mut f32 = [0.0].as_mut_ptr();
+            self.gl
+                .GetUniformfv(self.shader_id, self.uniform_id, params);
+            *params
+        }
+    }
+    fn set(&mut self, val: f32) {
+        unsafe {
+            self.gl
+                .ProgramUniform1f(self.shader_id, self.uniform_id, val)
+        }
+    }
+}
+
+impl UniformGetSet<Mat4> for Uniform<Mat4> {
+    fn get(&self) -> Mat4 {
+        unsafe {
+            let mut params: [f32; 16] = zeroed();
+            let params_ptr: *mut f32 = params.as_mut_ptr();
+            self.gl
+                .GetUniformfv(self.shader_id, self.uniform_id, params_ptr);
+            Mat4::from_cols_array(&params)
+        }
+    }
+    fn set(&mut self, val: Mat4) {
+        const COUNT: GLsizei = 1;
+        unsafe {
+            self.gl.ProgramUniformMatrix4fv(
+                self.shader_id,
+                self.uniform_id,
+                COUNT,
+                gl::FALSE,
+                val.as_ref().as_ptr(),
+            )
+        }
+    }
+}
