@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{borrow::BorrowMut, rc::Rc};
 
 use glam::{Mat4, Vec3};
 
@@ -83,7 +83,7 @@ impl Cube {
     }
     pub fn draw(&self, gl: &Gl, view_matrix: Mat4) {
         self.update_material_uniforms(gl);
-        self.mesh.draw(gl, view_matrix, &self.shader.shader);
+        self.mesh.draw(gl, view_matrix, self.shader.as_ref());
     }
     pub fn adjust_zoom(&mut self, zoom: GLfloat) {
         self.mesh.adjust_zoom(zoom);

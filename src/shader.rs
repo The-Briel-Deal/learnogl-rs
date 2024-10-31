@@ -192,6 +192,12 @@ impl Shader {
     }
 }
 
+pub trait DrawableShader {
+    fn model(&self) -> &Uniform<Mat4>;
+    fn view(&self) -> &Uniform<Mat4>;
+    fn projection(&self) -> &Uniform<Mat4>;
+}
+
 pub struct LightCasterShader {
     pub shader: Shader,
     pub model: Uniform<Mat4>,
@@ -217,6 +223,55 @@ impl LightCasterShader {
         }
     }
 }
+pub struct LightCubeShader {
+    pub shader: Shader,
+    pub model: Uniform<Mat4>,
+    pub view: Uniform<Mat4>,
+    pub projection: Uniform<Mat4>,
+}
+
+impl LightCubeShader {
+    pub fn new(gl: &Gl) -> Self {
+        let shader = Shader::new(
+            gl,
+            "src/shader/light_cube_vert.glsl",
+            "src/shader/light_cube_frag.glsl",
+        );
+        let model = Uniform::new(gl, &shader, "model");
+        let view = Uniform::new(gl, &shader, "view");
+        let projection = Uniform::new(gl, &shader, "projection");
+        Self {
+            shader,
+            model,
+            view,
+            projection,
+        }
+    }
+}
+
+impl DrawableShader for LightCubeShader {
+    fn model(&self) -> &Uniform<Mat4> {
+        &self.model
+    }
+    fn view(&self) -> &Uniform<Mat4> {
+        &self.view
+    }
+    fn projection(&self) -> &Uniform<Mat4> {
+        &self.projection
+    }
+}
+
+impl DrawableShader for LightCasterShader {
+    fn model(&self) -> &Uniform<Mat4> {
+        &self.model
+    }
+    fn view(&self) -> &Uniform<Mat4> {
+        &self.view
+    }
+    fn projection(&self) -> &Uniform<Mat4> {
+        &self.projection
+    }
+}
 
 pub struct Uniform<T> {
     gl: Gl,
@@ -237,9 +292,9 @@ impl<T> Uniform<T> {
     }
 }
 
-trait UniformGetSet<T> {
+pub trait UniformGetSet<T> {
     fn get(&self) -> T;
-    fn set(&mut self, val: T);
+    fn set(&self, val: T);
 }
 
 impl UniformGetSet<Vec3> for Uniform<Vec3> {
@@ -255,7 +310,7 @@ impl UniformGetSet<Vec3> for Uniform<Vec3> {
             Vec3 { x, y, z }
         }
     }
-    fn set(&mut self, val: Vec3) {
+    fn set(&self, val: Vec3) {
         unsafe {
             self.gl
                 .ProgramUniform3f(self.shader_id, self.uniform_id, val.x, val.y, val.z)
@@ -272,7 +327,7 @@ impl UniformGetSet<f32> for Uniform<f32> {
             *params
         }
     }
-    fn set(&mut self, val: f32) {
+    fn set(&self, val: f32) {
         unsafe {
             self.gl
                 .ProgramUniform1f(self.shader_id, self.uniform_id, val)
@@ -290,7 +345,7 @@ impl UniformGetSet<Mat4> for Uniform<Mat4> {
             Mat4::from_cols_array(&params)
         }
     }
-    fn set(&mut self, val: Mat4) {
+    fn set(&self, val: Mat4) {
         const COUNT: GLsizei = 1;
         unsafe {
             self.gl.ProgramUniformMatrix4fv(
