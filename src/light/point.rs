@@ -7,7 +7,7 @@ use crate::{
     gl::Gl,
     object::light_cube::LightCube,
     renderer::{VERTEX_DATA, VERTEX_DATA_STRIDE},
-    shader::{LightCasterShader, Shader, ShaderTrait},
+    shader::{LightCasterShader, ShaderTrait},
 };
 
 use super::Light;

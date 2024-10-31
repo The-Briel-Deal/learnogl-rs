@@ -9,7 +9,7 @@ use crate::{
         Gl,
     },
     helper::get_rand_angle,
-    shader::{DrawableShader, Shader, ShaderTrait, UniformGetSet},
+    shader::{DrawableShader, UniformGetSet},
 };
 
 struct Transform {

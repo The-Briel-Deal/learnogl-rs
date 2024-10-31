@@ -1,5 +1,4 @@
 use std::{
-    alloc::{alloc, alloc_zeroed, Layout},
     fs,
     marker::PhantomData,
     mem::zeroed,

@@ -6,7 +6,7 @@ use crate::{
     camera::direction::Degrees,
     gl::{types::GLfloat, Gl},
     mesh::{Mesh, VertexBuffer},
-    shader::{LightCubeShader, Shader, ShaderTrait},
+    shader::{LightCubeShader, ShaderTrait},
 };
 
 pub struct LightCube {

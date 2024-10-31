@@ -4,7 +4,7 @@ use glam::{vec3, Vec3};
 
 use crate::{
     gl::Gl,
-    shader::{LightCasterShader, Shader, ShaderTrait},
+    shader::{LightCasterShader, ShaderTrait},
 };
 
 use super::Light;

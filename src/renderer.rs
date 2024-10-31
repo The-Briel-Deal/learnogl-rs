@@ -12,7 +12,7 @@ use crate::{
     light::{DirectionLight, Light, PointLight, SpotLight},
     logging::setup_logging,
     object::cube::Cube,
-    shader::{LightCasterShader, Shader},
+    shader::LightCasterShader,
     timer::Timer,
 };
 

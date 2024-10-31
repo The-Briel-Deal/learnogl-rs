@@ -1,4 +1,4 @@
-use std::{borrow::BorrowMut, rc::Rc};
+use std::rc::Rc;
 
 use glam::{Mat4, Vec3};
 
@@ -7,7 +7,7 @@ use crate::{
     gl::{types::GLfloat, Gl},
     mesh::{Mesh, VertexBuffer},
     renderer::texture::TextureManager,
-    shader::{LightCasterShader, Shader, ShaderTrait},
+    shader::{LightCasterShader, ShaderTrait},
 };
 
 const SHININESS_DEFAULT: f32 = 32.0;
