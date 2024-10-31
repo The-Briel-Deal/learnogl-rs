@@ -19,7 +19,13 @@ impl LightCube {
         let shader = Rc::new(LightCubeShader::new(gl));
         let lit_object_vertex_buffer = VertexBuffer::new(gl, vertex_data, vertex_data_stride);
 
-        lit_object_vertex_buffer.set_float_attribute_position(gl, "aPos", shader.shader.get_id(), 0, 3);
+        lit_object_vertex_buffer.set_float_attribute_position(
+            gl,
+            "aPos",
+            shader.shader.get_id(),
+            0,
+            3,
+        );
 
         let mut mesh = Mesh::new(pos, lit_object_vertex_buffer);
         mesh.adjust_scale(vec3(0.2, 0.2, 0.2));

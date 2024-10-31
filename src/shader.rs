@@ -1,8 +1,4 @@
-use std::{
-    fs,
-    marker::PhantomData,
-    mem::zeroed,
-};
+use std::{fs, marker::PhantomData, mem::zeroed};
 
 use glam::{Mat4, Vec3};
 

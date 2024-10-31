@@ -81,21 +81,24 @@ impl SpotLightAttributes {
     }
 
     fn sync_state(&self, gl: &Gl) {
-
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(gl, "spotLight.position", self.position.into())
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(gl, "spotLight.direction", self.direction.into())
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_float(
                 gl,
                 "spotLight.innerCutOff",
                 self.inner_cutoff.to_radians().cos(),
             )
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_float(
                 gl,
                 "spotLight.outerCutOff",
@@ -103,23 +106,29 @@ impl SpotLightAttributes {
             )
             .unwrap();
 
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(gl, "spotLight.ambient", self.ambient.into())
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(gl, "spotLight.diffuse", self.diffuse.into())
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(gl, "spotLight.specular", self.specular.into())
             .unwrap();
 
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_float(gl, "spotLight.constant", self.constant)
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_float(gl, "spotLight.linear", self.linear)
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_float(gl, "spotLight.quadratic", self.quadratic)
             .unwrap();
     }

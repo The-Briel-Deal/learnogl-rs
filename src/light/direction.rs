@@ -51,17 +51,21 @@ impl DirectionLightAttributes {
     }
 
     fn sync_state(&self, gl: &Gl) {
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(gl, "dirLight.direction", self.direction.into())
             .unwrap();
 
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(gl, "dirLight.ambient", self.ambient.into())
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(gl, "dirLight.diffuse", self.diffuse.into())
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(gl, "dirLight.specular", self.specular.into())
             .unwrap();
     }

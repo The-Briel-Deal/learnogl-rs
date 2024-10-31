@@ -93,7 +93,8 @@ impl Cube {
     }
 
     fn update_material_uniforms(&self, gl: &Gl) {
-        self.shader.shader
+        self.shader
+            .shader
             .set_float(gl, "material.shininess", self.material.shininess)
             .unwrap();
     }

@@ -67,7 +67,8 @@ impl PointLightAttributes {
     }
 
     fn sync_state(&self, gl: &Gl, index: u8) {
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(
                 gl,
                 &format!("pointLights[{index}].position"),
@@ -75,21 +76,24 @@ impl PointLightAttributes {
             )
             .unwrap();
 
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(
                 gl,
                 &format!("pointLights[{index}].ambient"),
                 self.ambient.into(),
             )
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(
                 gl,
                 &format!("pointLights[{index}].diffuse"),
                 self.diffuse.into(),
             )
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_vec3(
                 gl,
                 &format!("pointLights[{index}].specular"),
@@ -97,13 +101,16 @@ impl PointLightAttributes {
             )
             .unwrap();
 
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_float(gl, &format!("pointLights[{index}].constant"), self.constant)
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_float(gl, &format!("pointLights[{index}].linear"), self.linear)
             .unwrap();
-        self.bound_shader.shader
+        self.bound_shader
+            .shader
             .set_float(
                 gl,
                 &format!("pointLights[{index}].quadratic"),
