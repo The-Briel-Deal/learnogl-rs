@@ -7,14 +7,14 @@ use crate::{
     gl::{types::GLfloat, Gl},
     mesh::{Mesh, VertexBuffer},
     renderer::texture::TextureManager,
-    shader::{Shader, ShaderTrait},
+    shader::{LightCasterShader, Shader, ShaderTrait},
 };
 
 const SHININESS_DEFAULT: f32 = 32.0;
 
 pub struct Cube {
     mesh: Mesh,
-    shader: Rc<Shader>,
+    shader: Rc<LightCasterShader>,
     material: Material,
 }
 pub struct Material {
@@ -25,18 +25,30 @@ impl Cube {
     pub fn new(
         gl: &Gl,
         pos: Vec3,
-        shader: Rc<Shader>,
+        shader: Rc<LightCasterShader>,
         vertex_data: &[f32],
         vertex_data_stride: i32,
     ) -> Self {
         let lit_object_vertex_buffer = VertexBuffer::new(gl, vertex_data, vertex_data_stride);
 
-        lit_object_vertex_buffer.set_float_attribute_position(gl, "aPos", shader.get_id(), 0, 3);
-        lit_object_vertex_buffer.set_float_attribute_position(gl, "aNormal", shader.get_id(), 3, 3);
+        lit_object_vertex_buffer.set_float_attribute_position(
+            gl,
+            "aPos",
+            shader.shader.get_id(),
+            0,
+            3,
+        );
+        lit_object_vertex_buffer.set_float_attribute_position(
+            gl,
+            "aNormal",
+            shader.shader.get_id(),
+            3,
+            3,
+        );
         lit_object_vertex_buffer.set_float_attribute_position(
             gl,
             "aTexCoords",
-            shader.get_id(),
+            shader.shader.get_id(),
             6,
             2,
         );
@@ -46,14 +58,14 @@ impl Cube {
             gl,
             "material.diffuse",
             "static/diffuse_container.png",
-            &shader,
+            &shader.shader,
             0,
         );
         texture_manager.create_texture(
             gl,
             "material.specular",
             "static/specular_container.png",
-            &shader,
+            &shader.shader,
             1,
         );
         texture_manager.bind_texture(gl, "material.diffuse", 0);
@@ -71,7 +83,7 @@ impl Cube {
     }
     pub fn draw(&self, gl: &Gl, view_matrix: Mat4) {
         self.update_material_uniforms(gl);
-        self.mesh.draw(gl, view_matrix, &self.shader);
+        self.mesh.draw(gl, view_matrix, &self.shader.shader);
     }
     pub fn adjust_zoom(&mut self, zoom: GLfloat) {
         self.mesh.adjust_zoom(zoom);
@@ -81,7 +93,7 @@ impl Cube {
     }
 
     fn update_material_uniforms(&self, gl: &Gl) {
-        self.shader
+        self.shader.shader
             .set_float(gl, "material.shininess", self.material.shininess)
             .unwrap();
     }

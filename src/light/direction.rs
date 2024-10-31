@@ -4,7 +4,7 @@ use glam::{vec3, Vec3};
 
 use crate::{
     gl::Gl,
-    shader::{Shader, ShaderTrait},
+    shader::{LightCasterShader, Shader, ShaderTrait},
 };
 
 use super::Light;
@@ -16,7 +16,7 @@ const DIFFUSE_STRENGTH_DEFAULT: Vec3 = vec3(0.5, 0.5, 0.5);
 const SPECULAR_STRENGTH_DEFAULT: Vec3 = vec3(1.0, 1.0, 1.0);
 
 struct DirectionLightAttributes {
-    bound_shader: Rc<Shader>,
+    bound_shader: Rc<LightCasterShader>,
 
     direction: Vec3,
 
@@ -27,7 +27,7 @@ struct DirectionLightAttributes {
 }
 
 impl DirectionLightAttributes {
-    fn new(gl: &Gl, bound_shader: Rc<Shader>) -> Self {
+    fn new(gl: &Gl, bound_shader: Rc<LightCasterShader>) -> Self {
         let attrs = Self {
             bound_shader,
 
@@ -51,17 +51,17 @@ impl DirectionLightAttributes {
     }
 
     fn sync_state(&self, gl: &Gl) {
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(gl, "dirLight.direction", self.direction.into())
             .unwrap();
 
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(gl, "dirLight.ambient", self.ambient.into())
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(gl, "dirLight.diffuse", self.diffuse.into())
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(gl, "dirLight.specular", self.specular.into())
             .unwrap();
     }
@@ -70,7 +70,7 @@ pub struct DirectionLight {
     attrs: DirectionLightAttributes,
 }
 impl DirectionLight {
-    pub fn new(gl: &Gl, lit_object_shader: Rc<Shader>) -> Self {
+    pub fn new(gl: &Gl, lit_object_shader: Rc<LightCasterShader>) -> Self {
         Self {
             attrs: DirectionLightAttributes::new(gl, lit_object_shader),
         }

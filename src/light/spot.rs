@@ -4,7 +4,7 @@ use glam::{vec3, Vec3};
 
 use crate::{
     gl::Gl,
-    shader::{Shader, ShaderTrait},
+    shader::{LightCasterShader, Shader, ShaderTrait},
 };
 
 use super::Light;
@@ -23,7 +23,7 @@ const ATTENUATION_LINEAR_DEFAULT: f32 = 0.09;
 const ATTENUATION_QUADRATIC_DEFAULT: f32 = 0.032;
 
 struct SpotLightAttributes {
-    bound_shader: Rc<Shader>,
+    bound_shader: Rc<LightCasterShader>,
 
     position: Vec3,
     direction: Vec3,
@@ -42,7 +42,7 @@ struct SpotLightAttributes {
 }
 
 impl SpotLightAttributes {
-    fn new(gl: &Gl, bound_shader: Rc<Shader>) -> Self {
+    fn new(gl: &Gl, bound_shader: Rc<LightCasterShader>) -> Self {
         let attrs = Self {
             bound_shader,
 
@@ -82,20 +82,20 @@ impl SpotLightAttributes {
 
     fn sync_state(&self, gl: &Gl) {
 
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(gl, "spotLight.position", self.position.into())
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(gl, "spotLight.direction", self.direction.into())
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_float(
                 gl,
                 "spotLight.innerCutOff",
                 self.inner_cutoff.to_radians().cos(),
             )
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_float(
                 gl,
                 "spotLight.outerCutOff",
@@ -103,23 +103,23 @@ impl SpotLightAttributes {
             )
             .unwrap();
 
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(gl, "spotLight.ambient", self.ambient.into())
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(gl, "spotLight.diffuse", self.diffuse.into())
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(gl, "spotLight.specular", self.specular.into())
             .unwrap();
 
-        self.bound_shader
+        self.bound_shader.shader
             .set_float(gl, "spotLight.constant", self.constant)
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_float(gl, "spotLight.linear", self.linear)
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_float(gl, "spotLight.quadratic", self.quadratic)
             .unwrap();
     }
@@ -130,7 +130,7 @@ pub struct SpotLight {
 }
 
 impl SpotLight {
-    pub fn new(gl: &Gl, lit_object_shader: Rc<Shader>) -> Self {
+    pub fn new(gl: &Gl, lit_object_shader: Rc<LightCasterShader>) -> Self {
         Self {
             attrs: SpotLightAttributes::new(gl, lit_object_shader),
         }

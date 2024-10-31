@@ -12,7 +12,7 @@ use crate::{
     light::{DirectionLight, Light, PointLight, SpotLight},
     logging::setup_logging,
     object::cube::Cube,
-    shader::Shader,
+    shader::{LightCasterShader, Shader},
     timer::Timer,
 };
 
@@ -37,11 +37,7 @@ impl Renderer {
         unsafe { gl.Enable(gl::DEPTH_TEST) };
         setup_logging(&gl);
 
-        let lit_object_program = Rc::new(Shader::new(
-            &gl,
-            "src/shader/light_casters_vert.glsl",
-            "src/shader/light_casters_frag.glsl",
-        ));
+        let lit_object_program = Rc::new(LightCasterShader::new(&gl));
 
         let flash_light = Box::new(SpotLight::new(&gl, Rc::clone(&lit_object_program)));
         let dir_light = Box::new(DirectionLight::new(&gl, Rc::clone(&lit_object_program)));

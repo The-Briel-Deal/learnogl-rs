@@ -7,7 +7,7 @@ use crate::{
     gl::Gl,
     object::light_cube::LightCube,
     renderer::{VERTEX_DATA, VERTEX_DATA_STRIDE},
-    shader::{Shader, ShaderTrait},
+    shader::{LightCasterShader, Shader, ShaderTrait},
 };
 
 use super::Light;
@@ -23,7 +23,7 @@ const ATTENUATION_LINEAR_DEFAULT: f32 = 0.09;
 const ATTENUATION_QUADRATIC_DEFAULT: f32 = 0.032;
 
 struct PointLightAttributes {
-    bound_shader: Rc<Shader>,
+    bound_shader: Rc<LightCasterShader>,
 
     position: Vec3,
 
@@ -39,7 +39,7 @@ struct PointLightAttributes {
 }
 
 impl PointLightAttributes {
-    fn new(gl: &Gl, bound_shader: Rc<Shader>, index: u8) -> Self {
+    fn new(gl: &Gl, bound_shader: Rc<LightCasterShader>, index: u8) -> Self {
         let attrs = Self {
             bound_shader,
 
@@ -67,7 +67,7 @@ impl PointLightAttributes {
     }
 
     fn sync_state(&self, gl: &Gl, index: u8) {
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(
                 gl,
                 &format!("pointLights[{index}].position"),
@@ -75,21 +75,21 @@ impl PointLightAttributes {
             )
             .unwrap();
 
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(
                 gl,
                 &format!("pointLights[{index}].ambient"),
                 self.ambient.into(),
             )
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(
                 gl,
                 &format!("pointLights[{index}].diffuse"),
                 self.diffuse.into(),
             )
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_vec3(
                 gl,
                 &format!("pointLights[{index}].specular"),
@@ -97,13 +97,13 @@ impl PointLightAttributes {
             )
             .unwrap();
 
-        self.bound_shader
+        self.bound_shader.shader
             .set_float(gl, &format!("pointLights[{index}].constant"), self.constant)
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_float(gl, &format!("pointLights[{index}].linear"), self.linear)
             .unwrap();
-        self.bound_shader
+        self.bound_shader.shader
             .set_float(
                 gl,
                 &format!("pointLights[{index}].quadratic"),
@@ -120,7 +120,7 @@ pub struct PointLight {
 }
 
 impl PointLight {
-    pub fn new(gl: &Gl, lit_object_shader: Rc<Shader>, index: u8) -> Self {
+    pub fn new(gl: &Gl, lit_object_shader: Rc<LightCasterShader>, index: u8) -> Self {
         let light_cube = LightCube::new(gl, POSITION_DEFAULT, &VERTEX_DATA, VERTEX_DATA_STRIDE);
         Self {
             index,

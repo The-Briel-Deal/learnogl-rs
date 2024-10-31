@@ -193,10 +193,29 @@ impl Shader {
 }
 
 pub struct LightCasterShader {
-    shader: Shader,
+    pub shader: Shader,
     pub model: Uniform<Mat4>,
     pub view: Uniform<Mat4>,
     pub projection: Uniform<Mat4>,
+}
+
+impl LightCasterShader {
+    pub fn new(gl: &Gl) -> Self {
+        let shader = Shader::new(
+            gl,
+            "src/shader/light_casters_vert.glsl",
+            "src/shader/light_casters_frag.glsl",
+        );
+        let model = Uniform::new(gl, &shader, "model");
+        let view = Uniform::new(gl, &shader, "view");
+        let projection = Uniform::new(gl, &shader, "projection");
+        Self {
+            shader,
+            model,
+            view,
+            projection,
+        }
+    }
 }
 
 pub struct Uniform<T> {
@@ -204,6 +223,18 @@ pub struct Uniform<T> {
     shader_id: u32,
     uniform_id: i32,
     resource_type: PhantomData<T>,
+}
+
+impl<T> Uniform<T> {
+    pub fn new(gl: &Gl, shader: &Shader, name: &str) -> Self {
+        let uniform_id = shader.get_uniform_id(gl, name).unwrap();
+        Self {
+            gl: gl.clone(),
+            shader_id: shader.program_id,
+            uniform_id,
+            resource_type: PhantomData,
+        }
+    }
 }
 
 trait UniformGetSet<T> {
