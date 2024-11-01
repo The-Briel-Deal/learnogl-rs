@@ -191,6 +191,7 @@ pub trait DrawableShader {
     fn model(&self) -> &Uniform<Mat4>;
     fn view(&self) -> &Uniform<Mat4>;
     fn projection(&self) -> &Uniform<Mat4>;
+    fn shader(&self) -> &Shader;
 }
 
 pub struct LightCasterShader {
@@ -254,6 +255,9 @@ impl DrawableShader for LightCubeShader {
     fn projection(&self) -> &Uniform<Mat4> {
         &self.projection
     }
+    fn shader(&self) -> &Shader {
+        &self.shader
+    }
 }
 
 impl DrawableShader for LightCasterShader {
@@ -265,6 +269,9 @@ impl DrawableShader for LightCasterShader {
     }
     fn projection(&self) -> &Uniform<Mat4> {
         &self.projection
+    }
+    fn shader(&self) -> &Shader {
+        &self.shader
     }
 }
 

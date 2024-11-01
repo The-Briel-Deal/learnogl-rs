@@ -9,7 +9,7 @@ use crate::{
         Gl,
     },
     helper::get_rand_angle,
-    shader::{DrawableShader, UniformGetSet},
+    shader::{DrawableShader, ShaderTrait, UniformGetSet},
 };
 
 struct Transform {
@@ -164,10 +164,19 @@ impl Mesh {
         let projection_matrix =
             Mat4::perspective_rh_gl(self.fov.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
 
-        shader.model().set(model_matrix);
+        shader.shader().set_mat4(gl, "model", model_matrix).unwrap();
 
-        shader.view().set(view_matrix);
-        shader.projection().set(projection_matrix);
+        //shader.model().set(model_matrix);
+
+        shader.shader().set_mat4(gl, "view", view_matrix).unwrap();
+
+        shader
+            .shader()
+            .set_mat4(gl, "projection", projection_matrix)
+            .unwrap();
+
+        //shader.view().set(view_matrix);
+        //shader.projection().set(projection_matrix);
 
         unsafe {
             gl.BindVertexArray(self.vao());
