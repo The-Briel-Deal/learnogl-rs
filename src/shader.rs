@@ -176,15 +176,6 @@ impl Shader {
 
         Ok(uniform_id)
     }
-    fn get_uniform<T>(&self, gl: &Gl, name: &str) -> Uniform<T> {
-        let id = self.get_uniform_id(gl, name);
-        Uniform {
-            gl: gl.clone(),
-            uniform_id: id.unwrap(),
-            shader_id: self.program_id,
-            resource_type: PhantomData,
-        }
-    }
 }
 
 pub trait DrawableShader {
