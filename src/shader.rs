@@ -212,9 +212,9 @@ impl LightCasterShader {
 }
 pub struct LightCubeShader {
     pub shader: Shader,
-    pub model: Uniform<Mat4>,
-    pub view: Uniform<Mat4>,
-    pub projection: Uniform<Mat4>,
+    model: Uniform<Mat4>,
+    view: Uniform<Mat4>,
+    projection: Uniform<Mat4>,
 }
 
 impl LightCubeShader {
