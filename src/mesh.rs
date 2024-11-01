@@ -164,19 +164,11 @@ impl Mesh {
         let projection_matrix =
             Mat4::perspective_rh_gl(self.fov.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
 
-        //shader.shader().set_mat4(gl, "model", model_matrix).unwrap();
         shader.model().set(model_matrix);
-
-        //shader.shader().set_mat4(gl, "view", view_matrix).unwrap();
         shader.view().set(view_matrix);
+        shader.projection().set(projection_matrix);
 
-        shader
-            .shader()
-            .set_mat4(gl, "projection", projection_matrix)
-            .unwrap();
-
-        //shader.projection().set(projection_matrix);
-
+        shader.shader().enable(gl);
         unsafe {
             gl.BindVertexArray(self.vao());
             gl.DrawArrays(gl::TRIANGLES, 0, 36);
