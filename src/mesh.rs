@@ -3,7 +3,7 @@ mod vertex;
 
 use std::{ffi::CString, mem::offset_of};
 
-use glam::{vec3, Mat4, Vec3};
+use glam::{Mat4, Vec3};
 use texture::Texture;
 use vertex::Vertex;
 
@@ -13,8 +13,7 @@ use crate::{
         types::{GLfloat, GLint, GLuint},
         Gl,
     },
-    helper::get_rand_angle,
-    shader::{DrawableShader, ShaderTrait, UniformGetSet},
+    shader::DrawableShader,
 };
 
 struct Transform {

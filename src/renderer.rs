@@ -7,7 +7,7 @@ use glutin::prelude::GlDisplay;
 use winit::keyboard::KeyCode;
 
 use crate::{
-    assimp::{aiImportFile, import_file},
+    assimp::import_file,
     camera::Camera,
     gl::{self, types::GLfloat, Gl},
     light::{DirectionLight, Light, PointLight, SpotLight},

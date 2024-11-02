@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use glam::{vec3, Mat4, Vec3};
+use glam::{Mat4, Vec3};
 
 use crate::{
     camera::direction::Degrees,
@@ -27,7 +27,7 @@ impl LightCube {
             3,
         );
 
-        let mut mesh = Mesh::new(gl, vec![], vec![], vec![]);
+        let mesh = Mesh::new(gl, vec![], vec![], vec![]);
         //mesh.adjust_scale(vec3(0.2, 0.2, 0.2));
         Self { mesh, shader }
     }
