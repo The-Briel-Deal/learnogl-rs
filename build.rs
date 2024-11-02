@@ -11,7 +11,7 @@ fn main() {
     println!("cargo:rustc-link-lib=assimp");
 
     let bindings = bindgen::Builder::default()
-        .header("wrapper.h")
+        .header("bindgen/wrapper.h")
         .clang_arg("-fretain-comments-from-system-headers")
         .generate_comments(true)
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
