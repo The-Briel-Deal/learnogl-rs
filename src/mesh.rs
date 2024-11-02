@@ -1,6 +1,11 @@
+mod vertex;
+mod texture;
+
 use std::ffi::CString;
 
 use glam::{vec3, Mat4, Vec3};
+use texture::Texture;
+use vertex::Vertex;
 
 use crate::{
     gl::{
@@ -19,10 +24,14 @@ struct Transform {
 }
 
 pub struct Mesh {
-    vertex_buffer: VertexBuffer,
-    transform: Transform,
-    fov: f32,
-    texture_blend: GLfloat,
+    // New from learn ogl
+    pub vertices: Vec<Vertex>,
+    pub indices: Vec<u32>,
+    pub textures: Vec<Texture>,
+
+    vao: u32,
+    vbo: u32,
+    ebo: u32,
 }
 
 pub struct VertexBuffer {
@@ -30,6 +39,75 @@ pub struct VertexBuffer {
     vao: u32,
     bindingindex: u32,
 }
+
+
+impl Mesh {
+    pub fn new(vertices: Vec<Vertex>, indices: Vec<u32>, textures: Vec<Texture>) -> Self {
+        Mesh {
+            vertices,
+            indices,
+            textures,
+        }
+    }
+
+    pub fn adjust_blend(&mut self, percent: f32) {
+        self.texture_blend = (self.texture_blend + percent).clamp(0.0, 1.0);
+    }
+    pub fn blend(&self) -> f32 {
+        self.texture_blend
+    }
+
+    pub fn rotate_by(&mut self, degrees: GLfloat) {
+        let transform = &mut self.transform;
+        transform.rotation += degrees;
+    }
+
+    pub fn adjust_zoom(&mut self, degrees: GLfloat) {
+        self.fov = (self.fov + degrees).clamp(5.0, 80.0);
+    }
+
+    pub fn adjust_scale(&mut self, scale: Vec3) {
+        self.transform.scale =
+            (self.transform.scale * scale).clamp(vec3(0.1, 0.1, 0.1), vec3(10.0, 10.0, 10.0));
+    }
+
+    pub fn pos(&self) -> Vec3 {
+        self.transform.translation
+    }
+
+    pub fn set_pos(&mut self, pos: Vec3) {
+        self.transform.translation = pos;
+    }
+
+    pub fn vao(&self) -> GLuint {
+        self.vertex_buffer.vao()
+    }
+
+    pub fn draw(&self, gl: &Gl, view_matrix: Mat4, shader: &dyn DrawableShader) {
+        // self.rotate_by(1.0);
+        let transform = &self.transform;
+
+        let model_matrix = Mat4::IDENTITY
+            * Mat4::from_translation(transform.translation)
+            * Mat4::from_rotation_x((transform.rotation / 2.0).to_radians())
+            * Mat4::from_rotation_y(transform.rotation.to_radians())
+            * Mat4::from_scale(transform.scale);
+
+        let projection_matrix =
+            Mat4::perspective_rh_gl(self.fov.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
+
+        shader.model().set(model_matrix);
+        shader.view().set(view_matrix);
+        shader.projection().set(projection_matrix);
+
+        shader.shader().enable(gl);
+        unsafe {
+            gl.BindVertexArray(self.vao());
+            gl.DrawArrays(gl::TRIANGLES, 0, 36);
+        }
+    }
+}
+
 
 impl VertexBuffer {
     pub fn new(gl: &Gl, buffer: &[f32], stride: i32) -> Self {
@@ -101,78 +179,6 @@ impl VertexBuffer {
     }
     pub fn vao(&self) -> GLuint {
         self.vao
-    }
-}
-
-impl Mesh {
-    pub fn new(translation: Vec3, vertex_buffer: VertexBuffer) -> Self {
-        Mesh {
-            vertex_buffer,
-            transform: Transform {
-                rotation: get_rand_angle(),
-                translation,
-                scale: vec3(1.0, 1.0, 1.0),
-            },
-            fov: 80.0,
-            texture_blend: 0.2,
-        }
-    }
-
-    pub fn adjust_blend(&mut self, percent: f32) {
-        self.texture_blend = (self.texture_blend + percent).clamp(0.0, 1.0);
-    }
-    pub fn blend(&self) -> f32 {
-        self.texture_blend
-    }
-
-    pub fn rotate_by(&mut self, degrees: GLfloat) {
-        let transform = &mut self.transform;
-        transform.rotation += degrees;
-    }
-
-    pub fn adjust_zoom(&mut self, degrees: GLfloat) {
-        self.fov = (self.fov + degrees).clamp(5.0, 80.0);
-    }
-
-    pub fn adjust_scale(&mut self, scale: Vec3) {
-        self.transform.scale =
-            (self.transform.scale * scale).clamp(vec3(0.1, 0.1, 0.1), vec3(10.0, 10.0, 10.0));
-    }
-
-    pub fn pos(&self) -> Vec3 {
-        self.transform.translation
-    }
-
-    pub fn set_pos(&mut self, pos: Vec3) {
-        self.transform.translation = pos;
-    }
-
-    pub fn vao(&self) -> GLuint {
-        self.vertex_buffer.vao()
-    }
-
-    pub fn draw(&self, gl: &Gl, view_matrix: Mat4, shader: &dyn DrawableShader) {
-        // self.rotate_by(1.0);
-        let transform = &self.transform;
-
-        let model_matrix = Mat4::IDENTITY
-            * Mat4::from_translation(transform.translation)
-            * Mat4::from_rotation_x((transform.rotation / 2.0).to_radians())
-            * Mat4::from_rotation_y(transform.rotation.to_radians())
-            * Mat4::from_scale(transform.scale);
-
-        let projection_matrix =
-            Mat4::perspective_rh_gl(self.fov.to_radians(), gl.get_aspect_ratio(), 0.1, 100.0);
-
-        shader.model().set(model_matrix);
-        shader.view().set(view_matrix);
-        shader.projection().set(projection_matrix);
-
-        shader.shader().enable(gl);
-        unsafe {
-            gl.BindVertexArray(self.vao());
-            gl.DrawArrays(gl::TRIANGLES, 0, 36);
-        }
     }
 }
 
