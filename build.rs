@@ -12,6 +12,8 @@ fn main() {
 
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
+        .clang_arg("-fretain-comments-from-system-headers")
+        .generate_comments(true)
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .blocklist_var("FP_NAN")
         .blocklist_var("FP_SUBNORMAL")

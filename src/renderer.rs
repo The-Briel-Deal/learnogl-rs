@@ -7,6 +7,7 @@ use glutin::prelude::GlDisplay;
 use winit::keyboard::KeyCode;
 
 use crate::{
+    assimp::{aiImportFile, import_file},
     camera::Camera,
     gl::{self, types::GLfloat, Gl},
     light::{DirectionLight, Light, PointLight, SpotLight},
@@ -33,6 +34,8 @@ impl Renderer {
             let symbol = CString::new(symbol).unwrap();
             gl_display.get_proc_address(symbol.as_c_str()).cast()
         });
+
+        dbg!(*import_file("static/backpack/backpack.obj"));
 
         unsafe { gl.Enable(gl::DEPTH_TEST) };
         setup_logging(&gl);
