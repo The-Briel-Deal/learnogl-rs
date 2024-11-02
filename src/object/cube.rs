@@ -71,7 +71,7 @@ impl Cube {
         texture_manager.bind_texture(gl, "material.diffuse", 0);
         texture_manager.bind_texture(gl, "material.specular", 1);
         Self {
-            mesh: Mesh::new(pos, lit_object_vertex_buffer),
+            mesh: Mesh::new(gl, vec![], vec![], vec![]),
             shader,
             material: Material {
                 shininess: SHININESS_DEFAULT,
@@ -79,17 +79,17 @@ impl Cube {
         }
     }
     pub fn adjust_blend(&mut self, blend: f32) {
-        self.mesh.adjust_blend(blend)
+        // self.mesh.adjust_blend(blend)
     }
     pub fn draw(&self, gl: &Gl, view_matrix: Mat4) {
         self.update_material_uniforms(gl);
         self.mesh.draw(gl, view_matrix, self.shader.as_ref());
     }
     pub fn adjust_zoom(&mut self, zoom: GLfloat) {
-        self.mesh.adjust_zoom(zoom);
+        //self.mesh.adjust_zoom(zoom);
     }
     pub fn rotate_by(&mut self, rotation: Degrees) {
-        self.mesh.rotate_by(rotation);
+        //self.mesh.rotate_by(rotation);
     }
 
     fn update_material_uniforms(&self, gl: &Gl) {

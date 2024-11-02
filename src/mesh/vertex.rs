@@ -1,7 +1,8 @@
 use glam::{Vec2, Vec3};
 
+#[repr(C)]
 pub struct Vertex {
-    position: Vec3,
-    normal: Vec3,
-    tex_coords: Vec2,
+    pub position: Vec3,
+    pub normal: Vec3,
+    pub tex_coords: Vec2,
 }

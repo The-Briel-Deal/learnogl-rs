@@ -27,24 +27,24 @@ impl LightCube {
             3,
         );
 
-        let mut mesh = Mesh::new(pos, lit_object_vertex_buffer);
-        mesh.adjust_scale(vec3(0.2, 0.2, 0.2));
+        let mut mesh = Mesh::new(gl, vec![], vec![], vec![]);
+        //mesh.adjust_scale(vec3(0.2, 0.2, 0.2));
         Self { mesh, shader }
     }
 
     pub fn adjust_blend(&mut self, blend: f32) {
-        self.mesh.adjust_blend(blend)
+        //self.mesh.adjust_blend(blend)
     }
     pub fn draw(&self, gl: &Gl, view_matrix: Mat4) {
-        self.mesh.draw(gl, view_matrix, self.shader.as_ref());
+        //self.mesh.draw(gl, view_matrix, self.shader.as_ref());
     }
     pub fn adjust_zoom(&mut self, zoom: GLfloat) {
-        self.mesh.adjust_zoom(zoom);
+        //self.mesh.adjust_zoom(zoom);
     }
     pub fn rotate_by(&mut self, rotation: Degrees) {
-        self.mesh.rotate_by(rotation);
+        //self.mesh.rotate_by(rotation);
     }
     pub fn set_pos(&mut self, pos: Vec3) {
-        self.mesh.set_pos(pos)
+        //self.mesh.set_pos(pos)
     }
 }
