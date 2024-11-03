@@ -1,8 +1,12 @@
 mod texture;
 mod vertex;
 
-use std::{ffi::CString, mem::offset_of};
+use std::{
+    ffi::{c_void, CString},
+    mem,
+};
 
+use bytemuck::offset_of;
 use glam::{Mat4, Vec3};
 use texture::Texture;
 use vertex::Vertex;
@@ -49,22 +53,68 @@ impl Mesh {
             vbo: 0,
             ebo: 0,
         }
+        .setup_mesh(gl)
     }
     fn setup_mesh(mut self, gl: &Gl) -> Self {
         unsafe {
             gl.CreateVertexArrays(1, &mut self.vao);
             gl.CreateBuffers(1, &mut self.vbo);
+            gl.NamedBufferStorage(
+                self.vbo,
+                (size_of::<Vertex>() * self.vertices.len()) as isize,
+                self.vertices.as_ptr() as *const c_void,
+                gl::STATIC_DRAW,
+            );
             gl.CreateBuffers(1, &mut self.ebo);
+            gl.NamedBufferStorage(
+                self.vao,
+                (size_of::<u32>() * self.indices.len()) as isize,
+                self.indices.as_ptr() as *const c_void,
+                gl::STATIC_DRAW,
+            );
             // Not positive on what binding index is, I think its used if you want to bind multiple
             // vaos to vbos?
             let binding_index = 0;
-            let offset = 0;
+            let vbo_offset = 0;
             let stride = size_of::<Vertex>() as i32;
-            gl.VertexArrayVertexBuffer(self.vao, binding_index, self.vbo, offset, stride);
+            gl.VertexArrayVertexBuffer(self.vao, binding_index, self.vbo, vbo_offset, stride);
 
+            gl.VertexArrayElementBuffer(self.vao, self.ebo);
+
+            // I can reduce this into a loop
+            // aPos
             let attrib_index = 0;
-            let attrib_length = 3;
             let attrib_start = offset_of!(Vertex, position);
+            let attrib_length = size_of::<Vec3>() / size_of::<f32>();
+            gl.EnableVertexArrayAttrib(self.vao, attrib_index);
+            gl.VertexArrayAttribFormat(
+                self.vao,
+                attrib_index,
+                attrib_length as GLint,
+                gl::FLOAT,
+                gl::FALSE,
+                attrib_start as u32,
+            );
+            gl.VertexArrayAttribBinding(self.vao, attrib_index, binding_index);
+
+            // aNormal
+            let attrib_index = 0;
+            let attrib_start = offset_of!(Vertex, normal);
+            let attrib_length = size_of::<Vec3>() / size_of::<f32>();
+            gl.EnableVertexArrayAttrib(self.vao, attrib_index);
+            gl.VertexArrayAttribFormat(
+                self.vao,
+                attrib_index,
+                attrib_length as GLint,
+                gl::FLOAT,
+                gl::FALSE,
+                attrib_start as u32,
+            );
+            gl.VertexArrayAttribBinding(self.vao, attrib_index, binding_index);
+            // aTexCoords
+            let attrib_index = 0;
+            let attrib_start = offset_of!(Vertex, tex_coords);
+            let attrib_length = size_of::<Vec3>() / size_of::<f32>();
             gl.EnableVertexArrayAttrib(self.vao, attrib_index);
             gl.VertexArrayAttribFormat(
                 self.vao,
