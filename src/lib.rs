@@ -4,6 +4,7 @@ pub mod helper;
 pub mod light;
 pub mod logging;
 pub mod mesh;
+pub mod model;
 pub mod object;
 pub mod renderer;
 pub mod shader;

@@ -8,8 +8,8 @@ use std::{
 
 use bytemuck::offset_of;
 use glam::{Mat4, Vec3};
-use texture::Texture;
-use vertex::Vertex;
+pub use texture::Texture;
+pub use vertex::Vertex;
 
 use crate::{
     gl::{
@@ -17,7 +17,7 @@ use crate::{
         types::{GLfloat, GLint, GLuint},
         Gl,
     },
-    shader::DrawableShader,
+    shader::{DrawableShader, ShaderTrait},
 };
 
 struct Transform {
@@ -132,7 +132,7 @@ impl Mesh {
         self
     }
 
-    pub fn draw(&self, gl: &Gl, view_matrix: Mat4, shader: &dyn DrawableShader) {
+    pub fn draw(&self, gl: &Gl, shader: &dyn DrawableShader) {
         // self.rotate_by(1.0);
         //let transform = &self.transform;
 
@@ -150,7 +150,40 @@ impl Mesh {
         //shader.projection().set(projection_matrix);
 
         //shader.shader().enable(gl);
+        let mut diffuse_nr = 1;
+        let mut specular_nr = 1;
+
+        for (i, texture) in self.textures.iter().enumerate() {
+            unsafe {
+                gl.ActiveTexture(gl::TEXTURE0 + i as u32);
+                let texture_name = texture.texture_type.as_str();
+                let number = match texture_name {
+                    "texture_diffuse" => {
+                        let result = diffuse_nr;
+                        diffuse_nr += 1;
+                        result.to_string()
+                    }
+                    "texture_specular" => {
+                        let result = specular_nr;
+                        specular_nr += 1;
+                        result.to_string()
+                    }
+                    _ => panic!("Texture is not a diffuse or specular."),
+                };
+                shader
+                    .shader()
+                    .set_int(
+                        gl,
+                        (String::from("material.") + texture_name + number.as_str()).as_str(),
+                        i as i32,
+                    )
+                    .unwrap();
+            }
+        }
+
         unsafe {
+            gl.ActiveTexture(gl::TEXTURE0);
+
             gl.BindVertexArray(self.vao);
             gl.DrawArrays(gl::TRIANGLES, 0, 36);
         }

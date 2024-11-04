@@ -1,9 +1,5 @@
-enum TextureType {
-    Diffuse,
-    Specular,
-}
-
 pub struct Texture {
-    id: u32,
-    texture_type: TextureType,
+    pub path: String,
+    pub id: u32,
+    pub texture_type: String,
 }

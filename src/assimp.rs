@@ -10,8 +10,16 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 /// Imports file and panics if it can't be found/imported.
 pub fn import_file(path: &str) -> &aiScene {
     unsafe {
-        aiImportFile(format!("{path}\0").as_ptr() as *const i8, 0)
-            .as_ref()
-            .expect(&format!("File at '{path}' not found or cannot be imported. Please try again with another path."))
+        let scene = aiImportFile(
+            format!("{path}\0").as_ptr() as *const i8,
+            aiPostProcessSteps_aiProcess_Triangulate | aiPostProcessSteps_aiProcess_FlipUVs,
+        )
+        .as_ref()
+        .expect(&format!(
+            "File at '{path}' not found or cannot be imported. Please try again with another path."
+        ));
+        assert_eq!(scene.mFlags & AI_SCENE_FLAGS_INCOMPLETE, 0);
+        assert!(!scene.mRootNode.is_null());
+        scene
     }
 }
